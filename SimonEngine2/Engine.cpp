@@ -131,8 +131,6 @@ void Engine::init() {
 	glutTimerFunc(0, ENGINEupdateTimer, 0);
 	glutTimerFunc(0, ENGINEframeTimer, 0);
 
-	std::cout << "Due to limitations in gluts menus the window unfocuses on all scene changes. So you have to refocus the window.\n";
-	std::cout << "I dunno why it does this though. I guess it just unfocuses windows when menus are attached to inputs\n";
 }
 
 void Engine::safeExit() {

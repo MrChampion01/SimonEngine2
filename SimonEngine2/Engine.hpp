@@ -1,7 +1,6 @@
 #ifndef ENGINE_HPP
 #define ENGINE_HPP
 
-#include <GL/glut.h>
 #include <GL/freeglut.h>
 
 #include <string>

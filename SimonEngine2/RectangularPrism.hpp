@@ -1,4 +1,4 @@
-#ifndef RECTANGLE_OBJECT_HPP
+#ifndef RECTANGULAR_PRISM_HPP
 #define RECTANGULAR_PRISM_HPP
 
 #include "Primitive.hpp"

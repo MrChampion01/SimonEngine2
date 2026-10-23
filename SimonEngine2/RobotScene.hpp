@@ -33,24 +33,9 @@ class RobotScene : public Scene {
 		virtual void update() override final;
 
 		virtual void deInit() override final;
-		
-		void mainMenu(int value);
-
 	private:
 		Robot* getRobot();
 		Robot* robot_ = nullptr;
-
-		int rotationXMenu_ = 0;
-		int rotationYMenu_ = 0;
-		int rotationZMenu_ = 0;
-		int rotationMenu_ = 0;
-
-		int perspectiveMenu_ = 0;
-		int renderMenu_ = 0;
-
-		int colorMenu_ = 0;
-
-		int mainMenu_ = 0;
 };
 
 #endif

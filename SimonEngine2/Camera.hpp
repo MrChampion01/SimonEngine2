@@ -1,7 +1,6 @@
 #ifndef CAMERA_HPP
 #define CAMERA_HPP
 
-#include <GL/glut.h>
 #include <GL/freeglut.h>
 
 #include "WindowConstants.hpp"

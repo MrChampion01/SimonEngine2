@@ -10,8 +10,8 @@ class MagicCube : public Object {
 		MagicCube() = default;
 		MagicCube(const EngineMath::Transform& localTransform);
 
-		void onStart() override;
-		void update() override;
+		void onStart() override final;
+		void update() override final;
 
 	private:
 

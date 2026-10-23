@@ -68,7 +68,7 @@ void AxisDisplay::onStart() {
 }
 
 void AxisDisplay::update() {
-    if (InputManager::getInstance().isPressed('a')) {
+    if (InputManager::getInstance().isPressed('3')) {
         toggleDrawing();
     }
 }

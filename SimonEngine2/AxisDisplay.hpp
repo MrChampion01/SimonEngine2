@@ -10,8 +10,8 @@ class AxisDisplay : public Object {
 		AxisDisplay() = default;
 		AxisDisplay(const EngineMath::Transform& localTransform);
 
-		void onStart() override;
-		void update() override;
+		void onStart() override final;
+		void update() override final;
 };
 
 #endif 

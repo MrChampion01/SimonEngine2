@@ -4,20 +4,25 @@
 #include "Object.hpp"
 #include "EngineMath.hpp"
 #include "EngineUtil.hpp"
+#include "Limb.hpp"
+#include "RectangularPrism.hpp"
+#include "Sphere.hpp"
 
 class Robot : public Object {
 	public:
 		Robot() = default;
 		Robot(const EngineMath::Transform& localTransform, EngineUtil::ColorRGB color);
 
-		void onStart() override;
-		void update() override;
+		void onStart() override final;
+		void update() override final;
 
 		void setColor(EngineUtil::ColorRGB);
 
 	private:
-		EngineMath::Vector3 leftArmPivot_;
-		EngineMath::Vector3 rightArmPivot_;
+		Limb* leftArm_ = nullptr;
+		Limb* rightArm_ = nullptr;
+		Limb* leftLeg_ = nullptr;
+		Limb* rightLeg_ = nullptr;
 		EngineUtil::ColorRGB color_;
 };
 

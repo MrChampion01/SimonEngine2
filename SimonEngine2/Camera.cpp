@@ -78,9 +78,9 @@ void Camera::updateZoomFromPosition() {
 
 	perspectiveZoomFov_ = std::clamp(perspectiveZoomFov_, minPerspectiveFov, maxPerspectiveFov);
 
-	const double baseTan = std::tan(EngineMath::degreesToRadians(perspectiveFovy_ * 0.5));
+	const float baseTan = std::tan(EngineMath::degreesToRadians(perspectiveFovy_ * 0.5));
 
-	const double zoomedTan = std::tan(EngineMath::degreesToRadians(perspectiveZoomFov_ * 0.5));
+	const float zoomedTan = std::tan(EngineMath::degreesToRadians(perspectiveZoomFov_ * 0.5));
 
 	orthoZoomScale_ = baseTan > 0.0 ? zoomedTan / baseTan : 1.0;
 

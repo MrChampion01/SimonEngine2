@@ -1,7 +1,6 @@
 #ifndef MESH_REGISTRY_HPP
 #define MESH_REGISTRY_HPP
 
-#include <GL/glut.h>
 #include <GL/freeglut.h>
 
 #include <unordered_map>

@@ -18,11 +18,11 @@ void Primitive::draw() {
 }
 
 void Primitive::update() {
-    if (InputManager::getInstance().isPressed('s')) {
-        drawAsSolid_ = true;
-    }
-    if (InputManager::getInstance().isPressed('w')) {
+    if (InputManager::getInstance().isPressed('1')) {
         drawAsSolid_ = false;
+    }
+    if (InputManager::getInstance().isPressed('2')) {
+        drawAsSolid_ = true;
     }
     if (InputManager::getInstance().isMouseButtonPressed(MOUSEBUTTON_LEFT)) {
         drawColor_ = !drawColor_;

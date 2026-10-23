@@ -70,6 +70,9 @@
     <Filter Include="Header Files\Registries">
       <UniqueIdentifier>{ae374b9c-a033-4c4a-92a2-acef5597f504}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\glad">
+      <UniqueIdentifier>{0ce84d9d-5caf-4085-8985-9b5db1e1e500}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -131,6 +134,12 @@
     </ClCompile>
     <ClCompile Include="MeshRegistry.cpp">
       <Filter>Source Files\Registries</Filter>
+    </ClCompile>
+    <ClCompile Include="glad.c">
+      <Filter>Source Files\glad</Filter>
+    </ClCompile>
+    <ClCompile Include="Limb.cpp">
+      <Filter>Source Files\Objects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -199,6 +208,9 @@
     </ClInclude>
     <ClInclude Include="MeshRegistry.hpp">
       <Filter>Header Files\Registries</Filter>
+    </ClInclude>
+    <ClInclude Include="Limb.hpp">
+      <Filter>Header Files\Objects</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

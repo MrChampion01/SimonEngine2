@@ -1,8 +1,6 @@
 #include "Robot.hpp"
 
 #include "Engine.hpp"
-#include "RectangularPrism.hpp"
-#include "Sphere.hpp"
 
 namespace {
     constexpr float torsoWide = 1.0f;
@@ -34,61 +32,68 @@ void Robot::onStart() {
         color_
     ));
 
-    // Left Arm
-    EngineMath::Transform leftArmTransform = EngineMath::Transform(
-        EngineMath::Vector3(0.0f - ((torsoWide + armWideThick) / 2.0f), 0.0f, 0.0f),
-        EngineMath::Quaternion::identity(),
-        EngineMath::Vector3(armWideThick, armTall, armWideThick)
-    );
+    // Left Arm (Limb)
+    {
+        EngineMath::Transform t(
+            EngineMath::Vector3(-(torsoWide + armWideThick) / 2.0f, 0.0f, 0.0f),
+            EngineMath::Quaternion::identity(),
+            EngineMath::Vector3(armWideThick, armTall, armWideThick)
+        );
 
-    EngineMath::Vector3 leftArmPivot_ = leftArmTransform.position_ + EngineMath::Vector3(0.0f + (armWideThick / 2.0f), (armTall / 2.0f), 0.0f);
+        EngineMath::Vector3 pivot = t.position_ + EngineMath::Vector3(0.0f, armTall / 2.0f, 0.0f);
+        t.rotateAround(pivot, EngineMath::Vector3(1.0f, 0.0f, 0.0f), EngineMath::degreesToRadians(-35.0f));
 
-    leftArmTransform.rotateAround(leftArmPivot_, EngineMath::Vector3(1.0f, 0.0f, 0.0f), EngineMath::degreesToRadians(-35.0f));
+        std::unique_ptr<Limb> limb = std::make_unique<Limb>(t, color_);
+        leftArm_ = limb.get();
+        addChild(std::move(limb));
+    }
 
-    addChild(std::make_unique<RectangularPrism>(
-        leftArmTransform,
-        color_
-    ));
+    // Right Arm (Limb)
+    {
+        EngineMath::Transform t(
+            EngineMath::Vector3((torsoWide + armWideThick) / 2.0f, 0.0f, 0.0f),
+            EngineMath::Quaternion::identity(),
+            EngineMath::Vector3(armWideThick, armTall, armWideThick)
+        );
 
-    // Right Arm
-    EngineMath::Transform rightArmTransform = EngineMath::Transform(
-        EngineMath::Vector3(0.0f + ((torsoWide + armWideThick) / 2.0f), 0.0f, 0.0f),
-        EngineMath::Quaternion::identity(),
-        EngineMath::Vector3(armWideThick, armTall, armWideThick)
-    );
+        EngineMath::Vector3 pivot = t.position_ + EngineMath::Vector3(0.0f, armTall / 2.0f, 0.0f);
+        t.rotateAround(pivot, EngineMath::Vector3(1.0f, 0.0f, 0.0f), EngineMath::degreesToRadians(35.0f));
 
-    EngineMath::Vector3 rightArmPivot_ = rightArmTransform.position_ + EngineMath::Vector3(0.0f - (armWideThick / 2.0f), armTall / 2.0f, 0.0f);
+        std::unique_ptr<Limb> limb = std::make_unique<Limb>(t, color_);
+        rightArm_ = limb.get();
+        addChild(std::move(limb));
+    }
 
-    rightArmTransform.rotateAround(rightArmPivot_, EngineMath::Vector3(1.0f, 0.0f, 0.0f), EngineMath::degreesToRadians(35.0f));
-
-    addChild(std::make_unique<RectangularPrism>(
-        rightArmTransform,
-        color_
-    ));
-
-    // Left Leg
-    addChild(std::make_unique<RectangularPrism>(
-        EngineMath::Transform(
-            EngineMath::Vector3(0.0f - (torsoWide / 4.0f), 0.0f - ((torsoTall + legTall) / 2.0f), 0.0f),
+    // Left Leg (Limb)
+    {
+        EngineMath::Transform t(
+            EngineMath::Vector3(-torsoWide / 4.0f, -(torsoTall + legTall) / 2.0f, 0.0f),
             EngineMath::Quaternion::identity(),
             EngineMath::Vector3(legWideThick, legTall, legWideThick)
-        ),
-        color_
-    ));
-    // Right Leg
-    addChild(std::make_unique<RectangularPrism>(
-        EngineMath::Transform(
-            EngineMath::Vector3(0.0f + (torsoWide / 4.0f), 0.0f - ((torsoTall + legTall) / 2.0f), 0.0f),
+        );
+
+        std::unique_ptr<Limb> limb = std::make_unique<Limb>(t, color_);
+        leftLeg_ = limb.get();
+        addChild(std::move(limb));
+    }
+
+    // Right Leg (Limb)
+    {
+        EngineMath::Transform t(
+            EngineMath::Vector3(torsoWide / 4.0f, -(torsoTall + legTall) / 2.0f, 0.0f),
             EngineMath::Quaternion::identity(),
             EngineMath::Vector3(legWideThick, legTall, legWideThick)
-        ),
-        color_
-    ));
-    
+        );
+
+        std::unique_ptr<Limb> limb = std::make_unique<Limb>(t, color_);
+        rightLeg_ = limb.get();
+        addChild(std::move(limb));
+    }
+
     // Head
     addChild(std::make_unique<Sphere>(
         EngineMath::Transform(
-            EngineMath::Vector3(0.0f, 0.0f + ((torsoTall + headDiameter) / 2.0f), 0.0f),
+            EngineMath::Vector3(0.0f, (torsoTall + headDiameter) / 2.0f, 0.0f),
             EngineMath::Quaternion::identity(),
             EngineMath::Vector3(headDiameter, headDiameter, headDiameter)
         ),
@@ -99,7 +104,15 @@ void Robot::onStart() {
 }
 
 void Robot::update() {
-    if (InputManager::getInstance().isPressed('m')) {
+    if (InputManager::getInstance().isPressed('4')) {
+        if (leftArm_) {
+            leftArm_->pivotMiddle(EngineMath::degreesToRadians(5.0f));
+        }
+        if (rightArm_) {
+            rightArm_->pivotMiddle(EngineMath::degreesToRadians(5.0f));
+        }
+    }
+    if (InputManager::getInstance().isSpecialKeyPressed(GLUT_KEY_F4)) {
         toggleDrawing();
     }
 }

@@ -1,7 +1,6 @@
 #ifndef INPUT_MANAGER_HPP
 #define INPUT_MANAGER_HPP
 
-#include <GL/glut.h>
 #include <GL/freeglut.h>
 #include <array>
 #include <string>
