@@ -158,7 +158,7 @@ void Notifications::drawAchievement(const GamerTheme::Theme& p, float now) const
 	const float boxW = 320.0f;
 	const float boxH = 58.0f;
 	const float x = (w - boxW) * 0.5f;
-	const float y = h - 70.0f - boxH * shown;
+	const float y = h - 80.0f - boxH * shown; // sits just above the XP bar / game hints
 	const float alpha = clamp01(shown * 1.5f);
 
 	// Glass pill + gold rim + a sheen that sweeps across once when it lands
