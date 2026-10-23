@@ -4,14 +4,14 @@
 
 namespace {
     constexpr int minSlices = 3;
-    constexpr int maxStacks = 3;
+    constexpr int minStacks = 3; // (was called maxStacks, but it is very much a minimum)
 }
 
 Sphere::Sphere(const EngineMath::Transform& localTransform, const EngineUtil::ColorRGB& color, int slices, int stacks)
     : Primitive(localTransform, color)
 {
     slices_ = std::max(minSlices, slices);
-    stacks_ = std::max(maxStacks, stacks);
+    stacks_ = std::max(minStacks, stacks);
     mesh_ = MeshRegistry::getInstance().getSphere(slices_, stacks_);
 }
 
