@@ -82,6 +82,7 @@ class ChuckEdition {
 
 		// ---- feature toggles
 		bool lightingEnabled_ = true; // F7
+		bool sceneryEnabled_ = true;  // F10 (backdrop sky / sun / skyline / embers)
 
 		// ---- frame timing (real numbers, measured with a steady clock)
 		float lastFrameTime_ = 0.0f;

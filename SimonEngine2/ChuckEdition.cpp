@@ -13,6 +13,7 @@
 #include "InputManager.hpp"
 #include "Render2D.hpp"
 #include "StudioLighting.hpp"
+#include "Backdrop.hpp"
 
 #include "RobotScene.hpp"
 #include "ObjScene.hpp"
@@ -78,6 +79,9 @@ void ChuckEdition::update(Scene* scene) {
 	if (input.isSpecialKeyPressed(GLUT_KEY_F2)) {
 		cycleTheme();
 	}
+	if (input.isSpecialKeyPressed(GLUT_KEY_F10)) {
+		sceneryEnabled_ = !sceneryEnabled_;
+	}
 	if (input.isSpecialKeyPressed(GLUT_KEY_F7)) {
 		lightingEnabled_ = !lightingEnabled_;
 		std::cout << "  [RTX] Ray tracing " << (lightingEnabled_ ? "ON (trust me bro)" : "OFF (console mode)") << "\n";
@@ -138,6 +142,9 @@ void ChuckEdition::updateWindowTitle(const Scene* scene) {
 }
 
 void ChuckEdition::drawBackdrop() {
+	if (sceneryEnabled_) {
+		Backdrop::draw(palette_, time());
+	}
 }
 
 void ChuckEdition::beginWorld(const Scene& scene) {
@@ -163,6 +170,11 @@ void ChuckEdition::drawOverlay(const Scene& scene) {
 	const GamerTheme::Theme& p = palette_;
 	const float w = static_cast<float>(Render2D::width());
 	const float h = static_cast<float>(Render2D::height());
+
+	// A handful of big blurry embers floating IN FRONT of the robot = instant depth
+	if (sceneryEnabled_) {
+		Backdrop::drawForegroundEmbers(p, time());
+	}
 
 	// Watermark, bottom-right. Every legit special edition needs one.
 	const std::string tag = "CHUCK SPECIAL EDITION";

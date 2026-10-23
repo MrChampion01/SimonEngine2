@@ -159,6 +159,9 @@
     <ClCompile Include="StudioLighting.cpp">
       <Filter>Source Files\ChuckEdition</Filter>
     </ClCompile>
+    <ClCompile Include="Backdrop.cpp">
+      <Filter>Source Files\ChuckEdition</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.hpp">
@@ -240,6 +243,9 @@
       <Filter>Header Files\ChuckEdition</Filter>
     </ClInclude>
     <ClInclude Include="StudioLighting.hpp">
+      <Filter>Header Files\ChuckEdition</Filter>
+    </ClInclude>
+    <ClInclude Include="Backdrop.hpp">
       <Filter>Header Files\ChuckEdition</Filter>
     </ClInclude>
   </ItemGroup>
