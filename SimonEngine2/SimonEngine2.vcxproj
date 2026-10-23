@@ -180,6 +180,7 @@
     <ClCompile Include="ChuckEdition.cpp" />
     <ClCompile Include="GamerTheme.cpp" />
     <ClCompile Include="Render2D.cpp" />
+    <ClCompile Include="StudioLighting.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AxisDisplay.hpp" />
@@ -208,6 +209,7 @@
     <ClInclude Include="ChuckEdition.hpp" />
     <ClInclude Include="GamerTheme.hpp" />
     <ClInclude Include="Render2D.hpp" />
+    <ClInclude Include="StudioLighting.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

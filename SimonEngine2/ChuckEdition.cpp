@@ -12,6 +12,7 @@
 #include "Scene.hpp"
 #include "InputManager.hpp"
 #include "Render2D.hpp"
+#include "StudioLighting.hpp"
 
 #include "RobotScene.hpp"
 #include "ObjScene.hpp"
@@ -66,7 +67,7 @@ void ChuckEdition::printConsoleBanner() const {
 	std::cout << "  [ OK ] Frame pacer overclocked\n";
 	std::cout << "  [ OK ] Gamer posture calibrated\n";
 	std::cout << "  [ OK ] Homework mode preserved: " << homeworkSignature << "\n\n";
-	std::cout << "  F2 = cycle RGB theme   |   ESC = rage quit\n\n";
+	std::cout << "  F2 = cycle RGB theme   |   F7 = ray tracing   |   ESC = rage quit\n\n";
 }
 
 // ============================================================================ per-tick
@@ -76,6 +77,10 @@ void ChuckEdition::update(Scene* scene) {
 
 	if (input.isSpecialKeyPressed(GLUT_KEY_F2)) {
 		cycleTheme();
+	}
+	if (input.isSpecialKeyPressed(GLUT_KEY_F7)) {
+		lightingEnabled_ = !lightingEnabled_;
+		std::cout << "  [RTX] Ray tracing " << (lightingEnabled_ ? "ON (trust me bro)" : "OFF (console mode)") << "\n";
 	}
 }
 
@@ -136,9 +141,20 @@ void ChuckEdition::drawBackdrop() {
 }
 
 void ChuckEdition::beginWorld(const Scene& scene) {
+	// Everything the world pass changes gets rolled back in endWorld(), so the
+	// next thing drawn (the HUD) starts from exactly the state the engine expects
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+	if (lightingEnabled_) {
+		StudioLighting::apply(palette_);
+	}
+	else {
+		StudioLighting::disable();
+	}
 }
 
 void ChuckEdition::endWorld(const Scene& scene) {
+	glPopAttrib();
 }
 
 void ChuckEdition::drawOverlay(const Scene& scene) {

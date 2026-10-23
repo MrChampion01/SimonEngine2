@@ -54,6 +54,8 @@ class ChuckEdition {
 		float fps() const { return fps_; }
 		float frameMs() const { return frameMs_; }
 
+		bool isRayTracingOn() const { return lightingEnabled_; } // (it's studio lighting, shh)
+
 		// "de_robot", "de_teapot", ... (Counter-Strike map naming, obviously)
 		static std::string mapName(const Scene& scene);
 
@@ -77,6 +79,9 @@ class ChuckEdition {
 		GamerTheme::Theme fromTheme_ = GamerTheme::theme(0);
 		float themeSwitchTime_ = -100.0f;
 		GamerTheme::Theme palette_ = GamerTheme::theme(0);
+
+		// ---- feature toggles
+		bool lightingEnabled_ = true; // F7
 
 		// ---- frame timing (real numbers, measured with a steady clock)
 		float lastFrameTime_ = 0.0f;

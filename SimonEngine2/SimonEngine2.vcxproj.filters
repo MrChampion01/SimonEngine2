@@ -156,6 +156,9 @@
     <ClCompile Include="Render2D.cpp">
       <Filter>Source Files\ChuckEdition</Filter>
     </ClCompile>
+    <ClCompile Include="StudioLighting.cpp">
+      <Filter>Source Files\ChuckEdition</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.hpp">
@@ -234,6 +237,9 @@
       <Filter>Header Files\ChuckEdition</Filter>
     </ClInclude>
     <ClInclude Include="Render2D.hpp">
+      <Filter>Header Files\ChuckEdition</Filter>
+    </ClInclude>
+    <ClInclude Include="StudioLighting.hpp">
       <Filter>Header Files\ChuckEdition</Filter>
     </ClInclude>
   </ItemGroup>
