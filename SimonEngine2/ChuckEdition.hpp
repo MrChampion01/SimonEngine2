@@ -47,6 +47,11 @@ class ChuckEdition {
 		void endWorld(const Scene& scene);
 		void drawOverlay(const Scene& scene);
 
+		// Neon outline passes: Scene::sceneDraw() redraws its objects once per pass
+		int outlinePassCount() const;
+		void beginOutlinePass(int pass);
+		void endOutlinePass();
+
 		// ------------------------------------------------------------ shared state
 		float time() const; // seconds since boot, high resolution
 		const GamerTheme::Theme& palette() const { return palette_; } // resolved for this frame
@@ -69,6 +74,7 @@ class ChuckEdition {
 		~ChuckEdition() {}
 
 		void printConsoleBanner() const;
+		static void floorFor(const Scene& scene, float& floorY, float& padRadius);
 		void cycleTheme();
 		void updateWindowTitle(const Scene* scene);
 
@@ -82,7 +88,8 @@ class ChuckEdition {
 
 		// ---- feature toggles
 		bool lightingEnabled_ = true; // F7
-		bool sceneryEnabled_ = true;  // F10 (backdrop sky / sun / skyline / embers)
+		bool sceneryEnabled_ = true;  // F10 (backdrop sky / sun / skyline / embers / floor)
+		bool outlinesEnabled_ = true; // F6
 
 		// ---- frame timing (real numbers, measured with a steady clock)
 		float lastFrameTime_ = 0.0f;

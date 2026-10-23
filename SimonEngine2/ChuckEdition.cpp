@@ -14,6 +14,7 @@
 #include "Render2D.hpp"
 #include "StudioLighting.hpp"
 #include "Backdrop.hpp"
+#include "NeonWorld.hpp"
 
 #include "RobotScene.hpp"
 #include "ObjScene.hpp"
@@ -81,6 +82,9 @@ void ChuckEdition::update(Scene* scene) {
 	}
 	if (input.isSpecialKeyPressed(GLUT_KEY_F10)) {
 		sceneryEnabled_ = !sceneryEnabled_;
+	}
+	if (input.isSpecialKeyPressed(GLUT_KEY_F6)) {
+		outlinesEnabled_ = !outlinesEnabled_;
 	}
 	if (input.isSpecialKeyPressed(GLUT_KEY_F7)) {
 		lightingEnabled_ = !lightingEnabled_;
@@ -161,7 +165,26 @@ void ChuckEdition::beginWorld(const Scene& scene) {
 }
 
 void ChuckEdition::endWorld(const Scene& scene) {
+	if (sceneryEnabled_) {
+		float floorY = 0.0f;
+		float padRadius = 1.0f;
+		floorFor(scene, floorY, padRadius);
+		NeonWorld::drawFloor(palette_, time(), floorY, padRadius);
+	}
+
 	glPopAttrib();
+}
+
+int ChuckEdition::outlinePassCount() const {
+	return outlinesEnabled_ ? NeonWorld::outlinePassCount() : 0;
+}
+
+void ChuckEdition::beginOutlinePass(int pass) {
+	NeonWorld::beginOutlinePass(palette_, pass);
+}
+
+void ChuckEdition::endOutlinePass() {
+	NeonWorld::endOutlinePass();
 }
 
 void ChuckEdition::drawOverlay(const Scene& scene) {
@@ -197,4 +220,23 @@ std::string ChuckEdition::mapName(const Scene& scene) {
 		return "de_magiccube";
 	}
 	return "de_unknown";
+}
+
+void ChuckEdition::floorFor(const Scene& scene, float& floorY, float& padRadius) {
+	// Hand-measured so every model stands exactly ON the neon floor:
+	//   robot:  legs are 1.5 tall, hanging below a 1.5 tall torso centered on 0 -> -2.25
+	//   teapot: the .obj's lowest vertex is y = 0
+	//   cube:   spins, so give it a generous gap underneath
+	if (dynamic_cast<const ObjScene*>(&scene)) {
+		floorY = -0.01f;
+		padRadius = 1.05f;
+	}
+	else if (dynamic_cast<const MagicCubeScene*>(&scene)) {
+		floorY = -2.0f;
+		padRadius = 1.35f;
+	}
+	else {
+		floorY = -2.26f;
+		padRadius = 1.15f;
+	}
 }

@@ -182,6 +182,7 @@
     <ClCompile Include="Render2D.cpp" />
     <ClCompile Include="StudioLighting.cpp" />
     <ClCompile Include="Backdrop.cpp" />
+    <ClCompile Include="NeonWorld.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AxisDisplay.hpp" />
@@ -212,6 +213,7 @@
     <ClInclude Include="Render2D.hpp" />
     <ClInclude Include="StudioLighting.hpp" />
     <ClInclude Include="Backdrop.hpp" />
+    <ClInclude Include="NeonWorld.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

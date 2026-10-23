@@ -43,11 +43,25 @@ void Scene::sceneDraw() const {
 
 	draw();
 
+	drawRootObjects();
+
+	// Neon edge glow: the same objects again, drawn as glowing outlines.
+	// (0 passes when F6 turned the outlines off)
+	ChuckEdition& chuck = ChuckEdition::getInstance();
+	for (int pass = 0; pass < chuck.outlinePassCount(); ++pass) {
+		chuck.beginOutlinePass(pass);
+		drawRootObjects();
+		chuck.endOutlinePass();
+	}
+
+	// Neon floor under everything, then all world state gets rolled back
+	chuck.endWorld(*this);
+}
+
+void Scene::drawRootObjects() const {
 	for (auto& rootObject : rootObjects_) {
 		rootObject->rootDraw();
 	}
-
-	ChuckEdition::getInstance().endWorld(*this);
 }
 
 void Scene::sceneUpdate() {
