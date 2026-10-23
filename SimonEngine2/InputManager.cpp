@@ -20,7 +20,15 @@ void InputManager::specialKeyUp(int key) {
     }
 }
 
-bool InputManager::isSpecialKeyDown(int key) const {
+// ---------------------------------------------------------------------------------
+//  CHUCK EDITION BUGFIX: "Why does F1 toggle the robot???"
+//  The query functions used to index the state arrays with the RAW GLUT key code,
+//  but the arrays are filled with the REMAPPED slot from mapSpecialKey().
+//  GLUT_KEY_F4 == 4, and slot 4 is... F1. So F4 was secretly F1. Spooky.
+//  Now every query takes a real GLUT_KEY_* code and remaps it, same as the callbacks.
+// ---------------------------------------------------------------------------------
+bool InputManager::isSpecialKeyDown(int glutKey) const {
+    const int key = mapSpecialKey(glutKey);
     if (key >= 0 && key < int(specialKeyCurrent_.size())) {
         return specialKeyCurrent_[key];
     }
@@ -28,7 +36,8 @@ bool InputManager::isSpecialKeyDown(int key) const {
         return false;
     }
 }
-bool InputManager::isSpecialKeyPressed(int key) const {
+bool InputManager::isSpecialKeyPressed(int glutKey) const {
+    const int key = mapSpecialKey(glutKey);
     if (key >= 0 && key < int(specialKeyCurrent_.size())) {
         return (specialKeyCurrent_[key] && !specialKeyPrevious_[key]);
     }
@@ -36,7 +45,8 @@ bool InputManager::isSpecialKeyPressed(int key) const {
         return false;
     }
 }
-bool InputManager::isSpecialKeyReleased(int key)  const {
+bool InputManager::isSpecialKeyReleased(int glutKey)  const {
+    const int key = mapSpecialKey(glutKey);
     if (key >= 0 && key < int(specialKeyCurrent_.size())) {
         return (!specialKeyCurrent_[key] && specialKeyPrevious_[key]);
     }
@@ -145,21 +155,16 @@ void INPUTMANAGERprocSpecialKeysUp(int key, int x, int y) {
 }
 
 void INPUTMANAGERprocKeys(unsigned char key, int x, int y) {
-    int code = static_cast<int>(key);
-    char ch = std::isprint(static_cast<unsigned char>(key)) ? static_cast<char>(key) : '?';
     InputManager::getInstance().keyDown(key);
     InputManager::getInstance().queueTypedChar(key);
 }
 
 void INPUTMANAGERprocKeysUp(unsigned char key, int x, int y) {
-    int code = static_cast<int>(key);
-    char ch = std::isprint(static_cast<unsigned char>(key)) ? static_cast<char>(key) : '?';
     InputManager::getInstance().keyUp(key);
 }
 
 void INPUTMANAGERprocMouse(int button, int state, int x, int y) {
     if (button == 3 || button == 4) {
-        bool up = (button == 3);
         InputManager::getInstance().registerScroll(button);
         return;
     }
@@ -198,6 +203,12 @@ int mapSpecialKey(int key) {
     case GLUT_KEY_F10:    return 13;
     case GLUT_KEY_F11:    return 14;
     case GLUT_KEY_F12:    return 15;
+    // Extra keys unlocked in the Chuck Special Edition DLC (free, no microtransactions)
+    case GLUT_KEY_PAGE_UP:   return 16;
+    case GLUT_KEY_PAGE_DOWN: return 17;
+    case GLUT_KEY_HOME:      return 18;
+    case GLUT_KEY_END:       return 19;
+    case GLUT_KEY_INSERT:    return 20;
     default: return -1;
     }
 }
