@@ -188,6 +188,7 @@
     <ClCompile Include="PowerCore.cpp" />
     <ClCompile Include="ChuckWorldScene.cpp" />
     <ClCompile Include="Notifications.cpp" />
+    <ClCompile Include="SplashScreen.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AxisDisplay.hpp" />
@@ -224,6 +225,7 @@
     <ClInclude Include="PowerCore.hpp" />
     <ClInclude Include="ChuckWorldScene.hpp" />
     <ClInclude Include="Notifications.hpp" />
+    <ClInclude Include="SplashScreen.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

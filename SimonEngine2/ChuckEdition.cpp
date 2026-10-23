@@ -16,6 +16,7 @@
 #include "Backdrop.hpp"
 #include "NeonWorld.hpp"
 #include "Hud.hpp"
+#include "SplashScreen.hpp"
 
 #include "RobotScene.hpp"
 #include "ObjScene.hpp"
@@ -85,6 +86,11 @@ void ChuckEdition::printConsoleBanner() const {
 void ChuckEdition::update(Scene* scene) {
 	InputManager& input = InputManager::getInstance();
 
+	// While the splash screen is up it eats every keypress, so nothing below runs
+	if (updateSplash()) {
+		return;
+	}
+
 	updateMapTransition();
 
 	// Achievements, callouts, XP, the scoreboard... all the dopamine
@@ -129,6 +135,54 @@ void ChuckEdition::update(Scene* scene) {
 	if (now > 300.0f) {
 		unlock(Achievement::TouchGrass);
 	}
+}
+
+bool ChuckEdition::updateSplash() {
+	if (splashEndTime_ >= 0.0f) {
+		return false;
+	}
+
+	const float now = time();
+	const bool skipped = anyInputPressed();
+	if (skipped || now >= SplashScreen::autoContinueSeconds) {
+		splashEndTime_ = now;
+		if (skipped) {
+			// Swallow the key that skipped the splash, so pressing '1' to skip doesn't also
+			// flip the robot into wireframe the same instant
+			InputManager::getInstance().reset();
+			std::cout << "  [BOOT] Splash skipped. Impatient. Respect.\n";
+		}
+		return true;
+	}
+	return true;
+}
+
+bool ChuckEdition::anyInputPressed() {
+	const InputManager& input = InputManager::getInstance();
+	if (!input.getTypedChars().empty()) {
+		return true;
+	}
+	if (input.isMouseButtonPressed(MOUSEBUTTON_LEFT) || input.isMouseButtonPressed(MOUSEBUTTON_MIDDLE) || input.isMouseButtonPressed(MOUSEBUTTON_RIGHT)) {
+		return true;
+	}
+	static const int specialKeys[] = {
+		GLUT_KEY_F1, GLUT_KEY_F2, GLUT_KEY_F3, GLUT_KEY_F4, GLUT_KEY_F5, GLUT_KEY_F6,
+		GLUT_KEY_F7, GLUT_KEY_F8, GLUT_KEY_F9, GLUT_KEY_F10, GLUT_KEY_F11, GLUT_KEY_F12,
+		GLUT_KEY_LEFT, GLUT_KEY_UP, GLUT_KEY_RIGHT, GLUT_KEY_DOWN
+	};
+	for (int key : specialKeys) {
+		if (input.isSpecialKeyPressed(key)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+float ChuckEdition::hudReveal() const {
+	if (splashEndTime_ < 0.0f) {
+		return 0.0f;
+	}
+	return std::min(1.0f, std::max(0.0f, (time() - splashEndTime_ - 0.15f) / 0.9f));
 }
 
 void ChuckEdition::observeHomeworkInput(const Scene* scene) {
@@ -447,7 +501,7 @@ void ChuckEdition::drawOverlay(const Scene& scene) {
 	// ---- the HUD: fill in this frame's numbers, let Hud draw them
 	Hud::HudInfo info;
 	info.time = time();
-	info.reveal = std::min(1.0f, time() / 0.9f);
+	info.reveal = hudReveal();
 	info.fps = fps_;
 	info.frameMs = frameMs_;
 	info.onePercentLowFps = onePercentLow_;
@@ -487,6 +541,12 @@ void ChuckEdition::drawOverlay(const Scene& scene) {
 
 	// The TAB loading wipe goes over EVERYTHING
 	drawMapTransition(w, h);
+
+	// ...except the boot splash, which fades out to reveal the game underneath
+	const float splashAlpha = splashEndTime_ < 0.0f ? 1.0f : 1.0f - (time() - splashEndTime_) / SplashScreen::fadeSeconds;
+	if (splashAlpha > 0.0f) {
+		SplashScreen::draw(p, time(), splashAlpha);
+	}
 
 	Render2D::end();
 }

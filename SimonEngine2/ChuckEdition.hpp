@@ -97,6 +97,11 @@ class ChuckEdition {
 		void updateMapTransition();
 		void drawMapTransition(float w, float h) const;
 
+		// ---- splash
+		bool updateSplash();          // true while the splash still owns the input
+		static bool anyInputPressed();
+		float hudReveal() const;      // 0..1, panels slide in after the splash
+
 		// ---- progression / notifications
 		void observeHomeworkInput(const Scene* scene);
 		void updateFakeKillfeed();
@@ -119,6 +124,9 @@ class ChuckEdition {
 		bool sceneryEnabled_ = true;  // F10 (backdrop sky / sun / skyline / embers / floor)
 		bool outlinesEnabled_ = true; // F6
 		bool statsVisible_ = true;    // F3
+
+		// ---- splash screen (negative = still showing)
+		float splashEndTime_ = -1.0f;
 
 		// ---- progression + notifications
 		Notifications notifications_;
