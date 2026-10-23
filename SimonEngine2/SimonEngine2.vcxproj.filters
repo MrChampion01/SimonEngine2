@@ -168,6 +168,15 @@
     <ClCompile Include="Hud.cpp">
       <Filter>Source Files\ChuckEdition</Filter>
     </ClCompile>
+    <ClCompile Include="ChuckBot.cpp">
+      <Filter>Source Files\ChuckEdition</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerCore.cpp">
+      <Filter>Source Files\ChuckEdition</Filter>
+    </ClCompile>
+    <ClCompile Include="ChuckWorldScene.cpp">
+      <Filter>Source Files\ChuckEdition</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.hpp">
@@ -258,6 +267,15 @@
       <Filter>Header Files\ChuckEdition</Filter>
     </ClInclude>
     <ClInclude Include="Hud.hpp">
+      <Filter>Header Files\ChuckEdition</Filter>
+    </ClInclude>
+    <ClInclude Include="ChuckBot.hpp">
+      <Filter>Header Files\ChuckEdition</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerCore.hpp">
+      <Filter>Header Files\ChuckEdition</Filter>
+    </ClInclude>
+    <ClInclude Include="ChuckWorldScene.hpp">
       <Filter>Header Files\ChuckEdition</Filter>
     </ClInclude>
   </ItemGroup>

@@ -29,6 +29,7 @@
 #include <string>
 
 #include "GamerTheme.hpp"
+#include "EngineMath.hpp"
 
 class Scene;
 
@@ -65,6 +66,10 @@ class ChuckEdition {
 		// "de_robot", "de_teapot", ... (Counter-Strike map naming, obviously)
 		static std::string mapName(const Scene& scene);
 
+		// Projects a world-space point to HUD pixels (y down) using the camera of the frame
+		// being drawn. Returns false if the point is behind the camera.
+		bool worldToScreen(const EngineMath::Vector3& world, float& x, float& y) const;
+
 		ChuckEdition(const ChuckEdition&) = delete;
 		ChuckEdition& operator=(const ChuckEdition&) = delete;
 		ChuckEdition(const ChuckEdition&&) = delete;
@@ -75,7 +80,14 @@ class ChuckEdition {
 		~ChuckEdition() {}
 
 		void printConsoleBanner() const;
-		static void floorFor(const Scene& scene, float& floorY, float& padRadius);
+		static void floorFor(const Scene& scene, float& floorY, float& padRadius, float& extent, float& spacing);
+
+		// ---- map rotation (TAB)
+		static int mapIndex(const Scene& scene);
+		static const char* mapNameByIndex(int index);
+		void startMapTransition(const Scene& scene);
+		void updateMapTransition();
+		void drawMapTransition(float w, float h) const;
 		void cycleTheme();
 		void updateWindowTitle(const Scene* scene);
 
@@ -92,6 +104,18 @@ class ChuckEdition {
 		bool sceneryEnabled_ = true;  // F10 (backdrop sky / sun / skyline / embers / floor)
 		bool outlinesEnabled_ = true; // F6
 		bool statsVisible_ = true;    // F3
+
+		// ---- TAB map transition (negative start = not transitioning)
+		float transitionStart_ = -1.0f;
+		int transitionTarget_ = 0;
+		bool transitionSwapped_ = false;
+
+		// ---- camera matrices captured in beginWorld() for worldToScreen()
+		double modelview_[16] = {};
+		double projection_[16] = {};
+		int viewport_[4] = {};
+		bool haveMatrices_ = false;
+		float horizonFraction_ = 0.60f; // fed to the backdrop next frame
 
 		// ---- frame timing (real numbers, measured with a steady clock)
 		float lastFrameTime_ = 0.0f;

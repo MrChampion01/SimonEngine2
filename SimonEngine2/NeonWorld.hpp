@@ -28,7 +28,8 @@ namespace NeonWorld {
 	// Draws the floor at height floorY. padRadius ~ how wide the object standing on it is.
 	// Call AFTER the scene's opaque objects so the depth buffer can hide the floor where
 	// objects cover it.
-	void drawFloor(const GamerTheme::Theme& palette, float timeSeconds, float floorY, float padRadius);
+	// extent = radius where the grid fades out, spacing = distance between grid lines
+	void drawFloor(const GamerTheme::Theme& palette, float timeSeconds, float floorY, float padRadius, float extent = 8.0f, float spacing = 0.5f);
 
 	// How many times the scene must be redrawn for the outline effect
 	int outlinePassCount();

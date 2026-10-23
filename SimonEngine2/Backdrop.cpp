@@ -17,9 +17,6 @@ namespace Backdrop {
 		constexpr int foregroundEmberCount = 14;
 		constexpr int buildingCount = 34;
 
-		// Where the ground meets the sky, as a fraction of screen height (from the top)
-		constexpr float horizonFraction = 0.60f;
-
 		// -----------------------------------------------------------------------------
 		//  Deterministic "random" numbers: the same (index, salt) always gives the same
 		//  value in [0, 1). This is an integer hash (multiply, xor-shift, repeat), which is
@@ -79,8 +76,10 @@ namespace Backdrop {
 		}
 
 		void drawSun(const GamerTheme::Theme& p, float w, float h, float horizonY, float t) {
-			// Big enough to peek out on both sides of whatever hero is standing in front of it
-			const float r = std::min(w, h) * 0.27f;
+			// Big enough to peek out on both sides of whatever hero is standing in front of it,
+			// but never taller than the sky above the horizon (perspective cameras can push
+			// the horizon way up the screen)
+			const float r = std::min(std::min(w, h) * 0.27f, horizonY * 0.85f);
 			const float cx = w * 0.5f;
 			const float cy = horizonY - r * 0.50f; // sitting low, half sunk behind the skyline
 
@@ -203,7 +202,7 @@ namespace Backdrop {
 		}
 	}
 
-	void draw(const GamerTheme::Theme& palette, float t) {
+	void draw(const GamerTheme::Theme& palette, float t, float horizonFraction) {
 		Render2D::begin();
 
 		const float w = static_cast<float>(Render2D::width());

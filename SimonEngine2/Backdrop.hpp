@@ -26,7 +26,9 @@
 namespace Backdrop {
 
 	// Paints the full-screen backdrop. Call right after glClear.
-	void draw(const GamerTheme::Theme& palette, float timeSeconds);
+	// horizonFraction = where the horizon sits, 0 = top of the screen, 1 = bottom.
+	// (ChuckEdition lines this up with the 3D camera's real horizon in perspective scenes.)
+	void draw(const GamerTheme::Theme& palette, float timeSeconds, float horizonFraction = 0.60f);
 
 	// A few big, soft embers drawn IN FRONT of the 3D scene (call from the overlay pass)
 	// for a cheap depth-of-field / parallax feel

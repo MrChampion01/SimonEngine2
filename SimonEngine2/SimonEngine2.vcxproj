@@ -184,6 +184,9 @@
     <ClCompile Include="Backdrop.cpp" />
     <ClCompile Include="NeonWorld.cpp" />
     <ClCompile Include="Hud.cpp" />
+    <ClCompile Include="ChuckBot.cpp" />
+    <ClCompile Include="PowerCore.cpp" />
+    <ClCompile Include="ChuckWorldScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AxisDisplay.hpp" />
@@ -216,6 +219,9 @@
     <ClInclude Include="Backdrop.hpp" />
     <ClInclude Include="NeonWorld.hpp" />
     <ClInclude Include="Hud.hpp" />
+    <ClInclude Include="ChuckBot.hpp" />
+    <ClInclude Include="PowerCore.hpp" />
+    <ClInclude Include="ChuckWorldScene.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

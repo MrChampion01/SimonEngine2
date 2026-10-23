@@ -12,12 +12,15 @@ namespace NeonWorld {
 	using GamerTheme::Rgb;
 
 	namespace {
-		constexpr float gridSpacing = 0.5f;   // world units between grid lines
-		constexpr float gridExtent = 8.0f;    // grid fades to nothing at this radius
 		constexpr int gridSegments = 32;      // each line is chopped up so it can fade per vertex
 		constexpr float gridScrollSpeed = 0.35f; // world units per second ("we're moving!!")
 
 		GLuint overrideTexture = 0;
+
+		// Set per drawFloor() call: the grid fades to nothing at gridExtent,
+		// with gridSpacing world units between lines
+		float gridExtent = 8.0f;
+		float gridSpacing = 0.5f;
 
 		// Grid brightness at a given distance from the center: full in the middle, easing
 		// out to zero at the edge. Squared so the falloff feels like fog, not a hard cutoff.
@@ -111,7 +114,10 @@ namespace NeonWorld {
 
 	// ======================================================================== floor
 
-	void drawFloor(const GamerTheme::Theme& p, float t, float floorY, float padRadius) {
+	void drawFloor(const GamerTheme::Theme& p, float t, float floorY, float padRadius, float extent, float spacing) {
+		gridExtent = extent;
+		gridSpacing = spacing;
+
 		glPushAttrib(GL_ALL_ATTRIB_BITS);
 
 		glDisable(GL_LIGHTING);
