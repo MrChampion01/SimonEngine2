@@ -17,6 +17,8 @@
 #include "NeonWorld.hpp"
 #include "Hud.hpp"
 #include "SplashScreen.hpp"
+#include "PostFX.hpp"
+#include "Screenshot.hpp"
 
 #include "RobotScene.hpp"
 #include "ObjScene.hpp"
@@ -86,10 +88,16 @@ void ChuckEdition::printConsoleBanner() const {
 void ChuckEdition::update(Scene* scene) {
 	InputManager& input = InputManager::getInstance();
 
+	const float tickNow = time();
+	const float dt = lastUpdateTime_ < 0.0f ? 0.0f : std::min(tickNow - lastUpdateTime_, 0.05f);
+	lastUpdateTime_ = tickNow;
+
 	// While the splash screen is up it eats every keypress, so nothing below runs
 	if (updateSplash()) {
 		return;
 	}
+
+	updateCameraControls(scene, dt);
 
 	updateMapTransition();
 
@@ -126,6 +134,28 @@ void ChuckEdition::update(Scene* scene) {
 		}
 	}
 
+	if (input.isSpecialKeyPressed(GLUT_KEY_F5)) {
+		cinematic_ = !cinematic_;
+		callout(cinematic_ ? "CINEMATIC MODE" : "GAMEPLAY MODE", cinematic_ ? "ROLL CAMERA" : "BACK IN CONTROL");
+		if (cinematic_) {
+			unlock(Achievement::Directors);
+		}
+	}
+	if (input.isSpecialKeyPressed(GLUT_KEY_F8)) {
+		crtEnabled_ = !crtEnabled_;
+		callout(crtEnabled_ ? "CRT MODE" : "CRT OFF", crtEnabled_ ? "1998 CALLED, IT WANTS ITS MONITOR BACK" : "WELCOME BACK TO FLAT PANELS");
+	}
+	if (input.isSpecialKeyPressed(GLUT_KEY_F9)) {
+		screenshotRequested_ = true;
+	}
+	if (input.isSpecialKeyPressed(GLUT_KEY_F11)) {
+		glutFullScreenToggle();
+	}
+	if (input.isSpecialKeyPressed(GLUT_KEY_F12)) {
+		photoMode_ = !photoMode_;
+		std::cout << "  [PHOTO] Photo mode " << (photoMode_ ? "ON (F12 to bring the HUD back)" : "OFF") << "\n";
+	}
+
 	// Passive XP: +1 every two seconds, just for showing up. That's how gaming works.
 	const float now = time();
 	if (now - lastPassiveXp_ >= 2.0f) {
@@ -135,6 +165,75 @@ void ChuckEdition::update(Scene* scene) {
 	if (now > 300.0f) {
 		unlock(Achievement::TouchGrass);
 	}
+}
+
+void ChuckEdition::updateCameraControls(Scene* scene, float dt) {
+	// Chuck World has a proper third-person rig of its own; only drive the homework cameras
+	if (!scene || dynamic_cast<ChuckWorldScene*>(scene)) {
+		return;
+	}
+
+	InputManager& input = InputManager::getInstance();
+	Camera& camera = scene->getCamera();
+	const EngineMath::Vector3 worldUp(0.0f, 1.0f, 0.0f);
+
+	float yaw = 0.0f;
+	float pitch = 0.0f;
+
+	// Right-drag = orbit. (Right click used to open Simon's HW1 menus; HW2 retired those.)
+	if (input.isMouseButtonDown(MOUSEBUTTON_RIGHT)) {
+		yaw -= input.mouseDeltaX() * 0.01f;
+		pitch += input.mouseDeltaY() * 0.01f;
+	}
+
+	// Cinematic mode: a slow, steady turntable orbit. Every game trailer ever.
+	if (cinematic_) {
+		yaw += 0.35f * dt;
+	}
+
+	if (yaw != 0.0f) {
+		camera.pivotAroundTarget(worldUp, yaw);
+	}
+
+	if (pitch != 0.0f) {
+		// Tilt around the camera's horizontal axis. Clamp the elevation so you can't flip
+		// over the top (gluLookAt goes haywire when you look straight down the up vector)
+		const EngineMath::Vector3 offset = camera.getPosition() - camera.getTarget();
+		const float distance = offset.length();
+		if (distance > 1e-4f) {
+			const float elevation = std::asin(std::min(1.0f, std::max(-1.0f, offset.y_ / distance)));
+			const float maxElevation = EngineMath::degreesToRadians(82.0f);
+			const float minElevation = EngineMath::degreesToRadians(-25.0f);
+			const float clamped = std::min(maxElevation, std::max(minElevation, elevation + pitch)) - elevation;
+			const EngineMath::Vector3 axis = offset.cross(worldUp).normalized();
+			if (axis.lengthSquared() > 0.5f && clamped != 0.0f) {
+				camera.pivotAroundTarget(axis, clamped);
+			}
+		}
+	}
+
+	// Scroll = zoom (same step sizes Simon's HW1 scenes used)
+	const bool perspective = camera.getProjectionMode() == Camera::ProjectionMode::Perspective;
+	const double zoomStep = perspective ? 2.0 : 0.05;
+	if (input.isMouseButtonPressed(MOUSEBUTTON_SCROLLUP)) {
+		camera.zoomIn(zoomStep);
+	}
+	if (input.isMouseButtonPressed(MOUSEBUTTON_SCROLLDOWN)) {
+		camera.zoomOut(zoomStep);
+	}
+}
+
+void ChuckEdition::takeScreenshot() {
+	screenshotRequested_ = false;
+	const std::string file = Screenshot::saveBmp();
+	if (file.empty()) {
+		callout("CLIP FAILED", "COULD NOT WRITE THE FILE");
+		return;
+	}
+	flashStart_ = time();
+	std::cout << "  [CLIP] Saved " << file << "\n";
+	callout("CLIPPED!", file);
+	unlock(Achievement::Shutterbug);
 }
 
 bool ChuckEdition::updateSplash() {
@@ -388,6 +487,10 @@ void ChuckEdition::beginFrame() {
 		onePercentLow_ = sorted[1] > 0.0f ? 1000.0f / sorted[1] : 0.0f;
 	}
 
+	// ---- ease the cinematic letterbox bars in and out
+	const float frameDt = std::min(frameMs_ / 1000.0f, 0.1f);
+	letterbox_ += ((cinematic_ ? 1.0f : 0.0f) - letterbox_) * std::min(1.0f, frameDt * 4.0f);
+
 	// ---- resolve this frame's palette: crossfade between themes, then apply rainbow
 	const float fade = smoothstep01((now - themeSwitchTime_) / themeFadeSeconds);
 	const GamerTheme::Theme blended = GamerTheme::blend(fromTheme_, GamerTheme::theme(themeIndex_), fade);
@@ -498,6 +601,12 @@ void ChuckEdition::drawOverlay(const Scene& scene) {
 		Backdrop::drawForegroundEmbers(p, time());
 	}
 
+	// Subtle lens vignette on the world (before the HUD so the HUD stays crisp)
+	PostFX::vignette(0.38f);
+
+	// Photo mode and cinematic mode both put the HUD away
+	const bool showHud = !photoMode_ && !cinematic_;
+
 	// ---- the HUD: fill in this frame's numbers, let Hud draw them
 	Hud::HudInfo info;
 	info.time = time();
@@ -524,20 +633,36 @@ void ChuckEdition::drawOverlay(const Scene& scene) {
 	info.chuckScore = chuckScore_;
 	info.bugsScore = bugsScore_;
 	info.isGameMap = dynamic_cast<const ChuckWorldScene*>(&scene) != nullptr;
-	Hud::draw(info, p);
+	if (showHud) {
+		Hud::draw(info, p);
 
-	// Chuck World brings its own game HUD (objective, score, nametag, popups...)
-	if (const ChuckWorldScene* world = dynamic_cast<const ChuckWorldScene*>(&scene)) {
-		world->drawHud(p, time());
+		// Chuck World brings its own game HUD (objective, score, nametag, popups...)
+		if (const ChuckWorldScene* world = dynamic_cast<const ChuckWorldScene*>(&scene)) {
+			world->drawHud(p, time());
+		}
 	}
 
-	// Watermark, bottom-right. Every legit special edition needs one.
-	const std::string tag = "CHUCK SPECIAL EDITION";
-	const float tagW = Render2D::strokeTextWidth(tag, 11.0f, 2.0f);
-	Render2D::strokeTextNeon(w - tagW - 14.0f, h - 14.0f, tag, 11.0f, p.accent, 0.85f, 2.0f);
+	// Cinematic black bars, with the watermark tucked into the bottom one like a trailer
+	PostFX::letterbox(letterbox_);
 
-	// Achievement toasts, callouts and the killfeed sit above the HUD
-	notifications_.draw(p, time(), 136.0f);
+	if (!photoMode_) {
+		// Watermark, bottom-right. Every legit special edition needs one.
+		const std::string tag = "CHUCK SPECIAL EDITION";
+		const float tagW = Render2D::strokeTextWidth(tag, 11.0f, 2.0f);
+		Render2D::strokeTextNeon(w - tagW - 14.0f, h - 14.0f, tag, 11.0f, p.accent, 0.85f, 2.0f);
+
+		if (letterbox_ > 0.5f) {
+			Render2D::text(16.0f, h - 14.0f, "CINEMATIC MODE  //  " + mapName(scene) + "  //  F5 TO EXIT", Render2D::Font::Tiny, p.accent2, (letterbox_ - 0.5f) * 2.0f);
+		}
+
+		// Achievement toasts, callouts and the killfeed sit above the HUD
+		notifications_.draw(p, time(), 136.0f);
+	}
+
+	// F8: the whole frame goes through a 1998 CRT, HUD included (that's how CRTs work)
+	if (crtEnabled_) {
+		PostFX::crt(p, time());
+	}
 
 	// The TAB loading wipe goes over EVERYTHING
 	drawMapTransition(w, h);
@@ -547,6 +672,12 @@ void ChuckEdition::drawOverlay(const Scene& scene) {
 	if (splashAlpha > 0.0f) {
 		SplashScreen::draw(p, time(), splashAlpha);
 	}
+
+	// F9: grab the finished frame from the back buffer BEFORE the flash gets drawn on it
+	if (screenshotRequested_) {
+		takeScreenshot();
+	}
+	PostFX::flash(0.85f * (1.0f - std::min(1.0f, (time() - flashStart_) / 0.35f)));
 
 	Render2D::end();
 }

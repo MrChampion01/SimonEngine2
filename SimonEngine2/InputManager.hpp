@@ -75,6 +75,17 @@ class InputManager {
         std::array<bool, 32> specialKeyCurrent_ = {};
         std::array<bool, 32> specialKeyPrevious_ = {};
 
+        // "Did it go down / up at ANY point since the last update?" latches.
+        // Without these, a quick tap whose press AND release both land between two update
+        // ticks is never seen (current == previous == false). Happens on slow frames, with
+        // macro keyboards, and with automated input tools. Cleared every update().
+        std::array<bool, 256> keyPressLatch_ = {};
+        std::array<bool, 256> keyReleaseLatch_ = {};
+        std::array<bool, 8> mousePressLatch_ = {};
+        std::array<bool, 8> mouseReleaseLatch_ = {};
+        std::array<bool, 32> specialKeyPressLatch_ = {};
+        std::array<bool, 32> specialKeyReleaseLatch_ = {};
+
         int mouseX_, mouseY_;
         int mouseDeltaX_, mouseDeltaY_;
 };

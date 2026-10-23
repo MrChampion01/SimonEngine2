@@ -97,6 +97,10 @@ class ChuckEdition {
 		void updateMapTransition();
 		void drawMapTransition(float w, float h) const;
 
+		// ---- camera toys for the homework maps (Chuck World drives its own camera)
+		void updateCameraControls(Scene* scene, float dt);
+		void takeScreenshot();
+
 		// ---- splash
 		bool updateSplash();          // true while the splash still owns the input
 		static bool anyInputPressed();
@@ -124,6 +128,13 @@ class ChuckEdition {
 		bool sceneryEnabled_ = true;  // F10 (backdrop sky / sun / skyline / embers / floor)
 		bool outlinesEnabled_ = true; // F6
 		bool statsVisible_ = true;    // F3
+		bool cinematic_ = false;      // F5 (auto-orbit + letterbox, HUD tucked away)
+		bool crtEnabled_ = false;     // F8
+		bool photoMode_ = false;      // F12 (every overlay hidden, pure scenery)
+		bool screenshotRequested_ = false; // F9, captured at the end of the next overlay pass
+		float letterbox_ = 0.0f;      // animated 0..1
+		float flashStart_ = -100.0f;  // screenshot flash
+		float lastUpdateTime_ = -1.0f;
 
 		// ---- splash screen (negative = still showing)
 		float splashEndTime_ = -1.0f;

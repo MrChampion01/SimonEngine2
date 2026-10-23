@@ -124,6 +124,11 @@ void Engine::init() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	// Games want "held" to mean held. Without this, X11 auto-repeat delivers a release +
+	// press pair ~30 times a second while a key is held, so WASD flickers and the input
+	// latches would see fresh presses. (Windows never re-fired isPressed on repeat anyway.)
+	glutIgnoreKeyRepeat(1);
+
 	glutSpecialFunc(INPUTMANAGERprocSpecialKeys);
 	glutSpecialUpFunc(INPUTMANAGERprocSpecialKeysUp);
 	glutKeyboardFunc(INPUTMANAGERprocKeys);

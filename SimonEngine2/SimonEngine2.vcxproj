@@ -189,6 +189,8 @@
     <ClCompile Include="ChuckWorldScene.cpp" />
     <ClCompile Include="Notifications.cpp" />
     <ClCompile Include="SplashScreen.cpp" />
+    <ClCompile Include="PostFX.cpp" />
+    <ClCompile Include="Screenshot.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AxisDisplay.hpp" />
@@ -226,6 +228,8 @@
     <ClInclude Include="ChuckWorldScene.hpp" />
     <ClInclude Include="Notifications.hpp" />
     <ClInclude Include="SplashScreen.hpp" />
+    <ClInclude Include="PostFX.hpp" />
+    <ClInclude Include="Screenshot.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

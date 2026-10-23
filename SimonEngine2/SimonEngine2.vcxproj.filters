@@ -183,6 +183,12 @@
     <ClCompile Include="SplashScreen.cpp">
       <Filter>Source Files\ChuckEdition</Filter>
     </ClCompile>
+    <ClCompile Include="PostFX.cpp">
+      <Filter>Source Files\ChuckEdition</Filter>
+    </ClCompile>
+    <ClCompile Include="Screenshot.cpp">
+      <Filter>Source Files\ChuckEdition</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.hpp">
@@ -288,6 +294,12 @@
       <Filter>Header Files\ChuckEdition</Filter>
     </ClInclude>
     <ClInclude Include="SplashScreen.hpp">
+      <Filter>Header Files\ChuckEdition</Filter>
+    </ClInclude>
+    <ClInclude Include="PostFX.hpp">
+      <Filter>Header Files\ChuckEdition</Filter>
+    </ClInclude>
+    <ClInclude Include="Screenshot.hpp">
       <Filter>Header Files\ChuckEdition</Filter>
     </ClInclude>
   </ItemGroup>

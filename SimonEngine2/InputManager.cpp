@@ -2,20 +2,38 @@
 #include <iostream>
 #include <cctype>
 
-void InputManager::keyDown(unsigned char key) { keyCurrent_[key] = true; }
-void InputManager::keyUp(unsigned char key) { keyCurrent_[key] = false; }
+// Latches only fire on real transitions, so OS key-repeat (more keyDowns while the key is
+// already held) does not count as a fresh press
+void InputManager::keyDown(unsigned char key) {
+    if (!keyCurrent_[key]) {
+        keyPressLatch_[key] = true;
+    }
+    keyCurrent_[key] = true;
+}
+void InputManager::keyUp(unsigned char key) {
+    if (keyCurrent_[key]) {
+        keyReleaseLatch_[key] = true;
+    }
+    keyCurrent_[key] = false;
+}
 
 bool InputManager::isDown(unsigned char key)      const { return keyCurrent_[key]; }
-bool InputManager::isPressed(unsigned char key)   const { return keyCurrent_[key] && !keyPrevious_[key]; }
-bool InputManager::isReleased(unsigned char key)  const { return !keyCurrent_[key] && keyPrevious_[key]; }
+bool InputManager::isPressed(unsigned char key)   const { return keyPressLatch_[key] || (keyCurrent_[key] && !keyPrevious_[key]); }
+bool InputManager::isReleased(unsigned char key)  const { return keyReleaseLatch_[key] || (!keyCurrent_[key] && keyPrevious_[key]); }
 
 void InputManager::specialKeyDown(int key) {
     if (key >= 0 && key < int(specialKeyCurrent_.size())) {
+        if (!specialKeyCurrent_[key]) {
+            specialKeyPressLatch_[key] = true;
+        }
         specialKeyCurrent_[key] = true;
     }
 }
 void InputManager::specialKeyUp(int key) {
     if (key >= 0 && key < int(specialKeyCurrent_.size())) {
+        if (specialKeyCurrent_[key]) {
+            specialKeyReleaseLatch_[key] = true;
+        }
         specialKeyCurrent_[key] = false;
     }
 }
@@ -39,7 +57,7 @@ bool InputManager::isSpecialKeyDown(int glutKey) const {
 bool InputManager::isSpecialKeyPressed(int glutKey) const {
     const int key = mapSpecialKey(glutKey);
     if (key >= 0 && key < int(specialKeyCurrent_.size())) {
-        return (specialKeyCurrent_[key] && !specialKeyPrevious_[key]);
+        return specialKeyPressLatch_[key] || (specialKeyCurrent_[key] && !specialKeyPrevious_[key]);
     }
     else {
         return false;
@@ -48,7 +66,7 @@ bool InputManager::isSpecialKeyPressed(int glutKey) const {
 bool InputManager::isSpecialKeyReleased(int glutKey)  const {
     const int key = mapSpecialKey(glutKey);
     if (key >= 0 && key < int(specialKeyCurrent_.size())) {
-        return (!specialKeyCurrent_[key] && specialKeyPrevious_[key]);
+        return specialKeyReleaseLatch_[key] || (!specialKeyCurrent_[key] && specialKeyPrevious_[key]);
     }
     else {
         return false;
@@ -57,11 +75,17 @@ bool InputManager::isSpecialKeyReleased(int glutKey)  const {
 
 void InputManager::mouseButtonDown(int button, int x, int y) {
     if (button >= 0 && button < int(mouseCurrent_.size())) {
+        if (!mouseCurrent_[button]) {
+            mousePressLatch_[button] = true;
+        }
         mouseCurrent_[button] = true;
     }
 }
 void InputManager::mouseButtonUp(int button, int x, int y) {
     if (button >= 0 && button < int(mouseCurrent_.size())) {
+        if (mouseCurrent_[button]) {
+            mouseReleaseLatch_[button] = true;
+        }
         mouseCurrent_[button] = false;
     }
 }
@@ -83,14 +107,14 @@ bool InputManager::isMouseButtonPressed(MouseButton button) const {
     if (button == MOUSEBUTTON_SCROLLDOWN) {
         return scrollDownThisFrame_;
     }
-    return mouseCurrent_[button] && !mousePrevious_[button];
+    return mousePressLatch_[button] || (mouseCurrent_[button] && !mousePrevious_[button]);
 }
 
 bool InputManager::isMouseButtonReleased(MouseButton button) const {
     if (button == MOUSEBUTTON_SCROLLUP || button == MOUSEBUTTON_SCROLLDOWN) {
         return false;
     }
-    return !mouseCurrent_[button] && mousePrevious_[button];
+    return mouseReleaseLatch_[button] || (!mouseCurrent_[button] && mousePrevious_[button]);
 }
 
 void InputManager::mouseMove(int x, int y) {
@@ -126,6 +150,13 @@ void InputManager::update() {
     mousePrevious_ = mouseCurrent_;
     specialKeyPrevious_ = specialKeyCurrent_;
 
+    keyPressLatch_.fill(false);
+    keyReleaseLatch_.fill(false);
+    mousePressLatch_.fill(false);
+    mouseReleaseLatch_.fill(false);
+    specialKeyPressLatch_.fill(false);
+    specialKeyReleaseLatch_.fill(false);
+
     mouseDeltaX_ = mouseDeltaY_ = 0;
 }
 
@@ -138,6 +169,13 @@ void InputManager::reset() {
     mousePrevious_.fill(false);
     typedChars_.clear();
     scrollUpThisFrame_ = scrollDownThisFrame_ = false;
+
+    keyPressLatch_.fill(false);
+    keyReleaseLatch_.fill(false);
+    mousePressLatch_.fill(false);
+    mouseReleaseLatch_.fill(false);
+    specialKeyPressLatch_.fill(false);
+    specialKeyReleaseLatch_.fill(false);
 }
 
 void INPUTMANAGERprocSpecialKeys(int key, int x, int y) {
