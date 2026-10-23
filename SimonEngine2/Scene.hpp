@@ -54,6 +54,9 @@ class Scene {
 		Camera& getCamera() { return camera_; }
 		const Camera& getCamera() const { return camera_; }
 
+		// Every object in the scene, children included (the HUD shows this as OBJECTS)
+		std::size_t countObjects() const;
+
 	protected:
 		// Scene specific functionalities handled here. GameObjects are updated AUTOMATICALLY based on per GameObject logic
 		virtual void init() {} // Scene specific init (Stuff not attached to GameObjects)

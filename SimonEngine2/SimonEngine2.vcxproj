@@ -183,6 +183,7 @@
     <ClCompile Include="StudioLighting.cpp" />
     <ClCompile Include="Backdrop.cpp" />
     <ClCompile Include="NeonWorld.cpp" />
+    <ClCompile Include="Hud.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AxisDisplay.hpp" />
@@ -214,6 +215,7 @@
     <ClInclude Include="StudioLighting.hpp" />
     <ClInclude Include="Backdrop.hpp" />
     <ClInclude Include="NeonWorld.hpp" />
+    <ClInclude Include="Hud.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

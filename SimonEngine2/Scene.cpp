@@ -58,6 +58,24 @@ void Scene::sceneDraw() const {
 	chuck.endWorld(*this);
 }
 
+namespace {
+	std::size_t countHierarchy(Object& object) {
+		std::size_t count = 1;
+		for (auto& child : object.getChildren()) {
+			count += countHierarchy(*child);
+		}
+		return count;
+	}
+}
+
+std::size_t Scene::countObjects() const {
+	std::size_t count = 0;
+	for (auto& rootObject : rootObjects_) {
+		count += countHierarchy(*rootObject);
+	}
+	return count;
+}
+
 void Scene::drawRootObjects() const {
 	for (auto& rootObject : rootObjects_) {
 		rootObject->rootDraw();

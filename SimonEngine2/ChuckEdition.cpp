@@ -15,6 +15,7 @@
 #include "StudioLighting.hpp"
 #include "Backdrop.hpp"
 #include "NeonWorld.hpp"
+#include "Hud.hpp"
 
 #include "RobotScene.hpp"
 #include "ObjScene.hpp"
@@ -83,6 +84,9 @@ void ChuckEdition::update(Scene* scene) {
 	if (input.isSpecialKeyPressed(GLUT_KEY_F10)) {
 		sceneryEnabled_ = !sceneryEnabled_;
 	}
+	if (input.isSpecialKeyPressed(GLUT_KEY_F3)) {
+		statsVisible_ = !statsVisible_;
+	}
 	if (input.isSpecialKeyPressed(GLUT_KEY_F6)) {
 		outlinesEnabled_ = !outlinesEnabled_;
 	}
@@ -116,11 +120,20 @@ void ChuckEdition::beginFrame() {
 	frameMs_ = (now - lastFrameTime_) * 1000.0f;
 	lastFrameTime_ = now;
 
+	frameHistory_[frameHistoryHead_] = frameMs_;
+	frameHistoryHead_ = (frameHistoryHead_ + 1) % frameHistorySize;
+
 	++framesInWindow_;
 	if (now - fpsWindowStart_ >= fpsWindowSeconds) {
 		fps_ = framesInWindow_ / (now - fpsWindowStart_);
 		framesInWindow_ = 0;
 		fpsWindowStart_ = now;
+
+		// "1% low" = the FPS you'd get if every frame were as slow as the slowest 1%.
+		// With 120 samples that's the 2nd-worst frame. Pros quote this one, not the average.
+		std::array<float, frameHistorySize> sorted = frameHistory_;
+		std::nth_element(sorted.begin(), sorted.begin() + 1, sorted.end(), [](float a, float b) { return a > b; });
+		onePercentLow_ = sorted[1] > 0.0f ? 1000.0f / sorted[1] : 0.0f;
 	}
 
 	// ---- resolve this frame's palette: crossfade between themes, then apply rainbow
@@ -198,6 +211,26 @@ void ChuckEdition::drawOverlay(const Scene& scene) {
 	if (sceneryEnabled_) {
 		Backdrop::drawForegroundEmbers(p, time());
 	}
+
+	// ---- the HUD: fill in this frame's numbers, let Hud draw them
+	Hud::HudInfo info;
+	info.time = time();
+	info.reveal = std::min(1.0f, time() / 0.9f);
+	info.fps = fps_;
+	info.frameMs = frameMs_;
+	info.onePercentLowFps = onePercentLow_;
+	info.frameHistoryMs = frameHistory_.data();
+	info.frameHistorySize = frameHistorySize;
+	info.frameHistoryHead = frameHistoryHead_;
+	info.mapName = mapName(scene);
+	info.themeName = p.name;
+	info.cameraMode = scene.getCamera().getProjectionMode() == Camera::ProjectionMode::Perspective ? "PERSP" : "ORTHO";
+	info.cameraZoom = static_cast<float>(scene.getCamera().getZoom());
+	info.objectCount = static_cast<int>(scene.countObjects());
+	info.sessionSeconds = time();
+	info.rayTracing = lightingEnabled_;
+	info.showStats = statsVisible_;
+	Hud::draw(info, p);
 
 	// Watermark, bottom-right. Every legit special edition needs one.
 	const std::string tag = "CHUCK SPECIAL EDITION";

@@ -24,6 +24,7 @@
  *  input to react to it, and only *consumes* it while the splash screen is up.
  */
 
+#include <array>
 #include <chrono>
 #include <string>
 
@@ -90,6 +91,7 @@ class ChuckEdition {
 		bool lightingEnabled_ = true; // F7
 		bool sceneryEnabled_ = true;  // F10 (backdrop sky / sun / skyline / embers / floor)
 		bool outlinesEnabled_ = true; // F6
+		bool statsVisible_ = true;    // F3
 
 		// ---- frame timing (real numbers, measured with a steady clock)
 		float lastFrameTime_ = 0.0f;
@@ -97,7 +99,13 @@ class ChuckEdition {
 		int framesInWindow_ = 0;
 		float fps_ = 0.0f;
 		float frameMs_ = 0.0f;
+		float onePercentLow_ = 0.0f;
 		float lastTitleUpdate_ = -1.0f;
+
+		// Ring buffer of recent frame times for the HUD graph. head_ = oldest sample.
+		static constexpr int frameHistorySize = 120;
+		std::array<float, frameHistorySize> frameHistory_ = {};
+		int frameHistoryHead_ = 0;
 		std::string lastMapName_;
 };
 
