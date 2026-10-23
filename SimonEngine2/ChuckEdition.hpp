@@ -30,6 +30,7 @@
 
 #include "GamerTheme.hpp"
 #include "EngineMath.hpp"
+#include "Notifications.hpp"
 
 class Scene;
 
@@ -70,6 +71,13 @@ class ChuckEdition {
 		// being drawn. Returns false if the point is behind the camera.
 		bool worldToScreen(const EngineMath::Vector3& world, float& x, float& y) const;
 
+		// ------------------------------------------------------------ hype API
+		// Anything (scenes included) can fire these. Unlocking twice is a no-op.
+		void unlock(Achievement achievement);
+		void callout(const std::string& text, const std::string& subtitle = "");
+		void killfeed(const std::string& killer, const std::string& weapon, const std::string& victim);
+		void awardXp(int amount);
+
 		ChuckEdition(const ChuckEdition&) = delete;
 		ChuckEdition& operator=(const ChuckEdition&) = delete;
 		ChuckEdition(const ChuckEdition&&) = delete;
@@ -88,6 +96,13 @@ class ChuckEdition {
 		void startMapTransition(const Scene& scene);
 		void updateMapTransition();
 		void drawMapTransition(float w, float h) const;
+
+		// ---- progression / notifications
+		void observeHomeworkInput(const Scene* scene);
+		void updateFakeKillfeed();
+		static int levelForXp(int xp);
+		static int xpForLevel(int level);
+		static const char* rankForLevel(int level);
 		void cycleTheme();
 		void updateWindowTitle(const Scene* scene);
 
@@ -104,6 +119,22 @@ class ChuckEdition {
 		bool sceneryEnabled_ = true;  // F10 (backdrop sky / sun / skyline / embers / floor)
 		bool outlinesEnabled_ = true; // F6
 		bool statsVisible_ = true;    // F3
+
+		// ---- progression + notifications
+		Notifications notifications_;
+		std::array<bool, static_cast<std::size_t>(Achievement::Count)> unlocked_ = {};
+		int xp_ = 0;
+		int level_ = 1;
+		float lastPassiveXp_ = 0.0f;
+		bool sawAnyInput_ = false;
+		int elbowBends_ = 0;
+		bool grayscale_ = false;
+		unsigned int themesSeen_ = 1u;  // bit per theme index (we boot into theme 0)
+		unsigned int mapsSeen_ = 0u;    // bit per map index
+		int chuckScore_ = 0;            // the esports scoreboard: CHUCK vs BUGS
+		int bugsScore_ = 0;
+		float nextFakeKill_ = 6.0f;
+		unsigned int rng_ = 0x5EED5u;
 
 		// ---- TAB map transition (negative start = not transitioning)
 		float transitionStart_ = -1.0f;

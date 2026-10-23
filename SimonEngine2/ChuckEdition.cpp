@@ -87,6 +87,11 @@ void ChuckEdition::update(Scene* scene) {
 
 	updateMapTransition();
 
+	// Achievements, callouts, XP, the scoreboard... all the dopamine
+	observeHomeworkInput(scene);
+	updateFakeKillfeed();
+	notifications_.update(time());
+
 	// TAB = next map (ASCII 9)
 	if (scene && input.isPressed(9) && transitionStart_ < 0.0f) {
 		startMapTransition(*scene);
@@ -97,17 +102,190 @@ void ChuckEdition::update(Scene* scene) {
 	}
 	if (input.isSpecialKeyPressed(GLUT_KEY_F10)) {
 		sceneryEnabled_ = !sceneryEnabled_;
+		callout("SCENERY", sceneryEnabled_ ? "ON" : "OFF");
 	}
 	if (input.isSpecialKeyPressed(GLUT_KEY_F3)) {
 		statsVisible_ = !statsVisible_;
 	}
 	if (input.isSpecialKeyPressed(GLUT_KEY_F6)) {
 		outlinesEnabled_ = !outlinesEnabled_;
+		callout("NEON OUTLINES", outlinesEnabled_ ? "ON" : "OFF");
 	}
 	if (input.isSpecialKeyPressed(GLUT_KEY_F7)) {
 		lightingEnabled_ = !lightingEnabled_;
 		std::cout << "  [RTX] Ray tracing " << (lightingEnabled_ ? "ON (trust me bro)" : "OFF (console mode)") << "\n";
+		callout("RAY TRACING", lightingEnabled_ ? "ON  (TRUST ME BRO)" : "OFF  (CONSOLE MODE)");
+		if (!lightingEnabled_) {
+			unlock(Achievement::ConsolePeasant);
+		}
 	}
+
+	// Passive XP: +1 every two seconds, just for showing up. That's how gaming works.
+	const float now = time();
+	if (now - lastPassiveXp_ >= 2.0f) {
+		lastPassiveXp_ = now;
+		awardXp(1);
+	}
+	if (now > 300.0f) {
+		unlock(Achievement::TouchGrass);
+	}
+}
+
+void ChuckEdition::observeHomeworkInput(const Scene* scene) {
+	// Chuck Edition never CHANGES what the homework keys do; it just watches them and
+	// throws a parade every time one gets pressed
+	InputManager& input = InputManager::getInstance();
+	const float now = time();
+
+	if (!sawAnyInput_ && (!input.getTypedChars().empty() || input.isMouseButtonPressed(MOUSEBUTTON_LEFT))) {
+		sawAnyInput_ = true;
+		unlock(Achievement::FirstBlood);
+	}
+
+	if (scene) {
+		const unsigned int bit = 1u << mapIndex(*scene);
+		if (!(mapsSeen_ & bit)) {
+			mapsSeen_ |= bit;
+			if (mapsSeen_ == (1u << mapCount) - 1u) {
+				unlock(Achievement::WorldTourist);
+			}
+		}
+	}
+
+	if (input.isPressed('1')) {
+		callout("WIREFRAME", "X-RAY VISION ENGAGED");
+		unlock(Achievement::XRayVision);
+	}
+	if (input.isPressed('2')) {
+		callout("SOLID", "BACK TO REALITY");
+	}
+	if (input.isPressed('3') && scene && !dynamic_cast<const ChuckWorldScene*>(scene)) {
+		callout("AXIS DISPLAY", "TOGGLED");
+	}
+	if (input.isMouseButtonPressed(MOUSEBUTTON_LEFT)) {
+		grayscale_ = !grayscale_;
+		callout(grayscale_ ? "MONOCHROME" : "FULL COLOR", grayscale_ ? "FILM NOIR MODE" : "RGB RESTORED");
+		if (grayscale_) {
+			unlock(Achievement::FilmNoir);
+		}
+	}
+
+	// '4' (elbows) and F4 (cloak) are robot-only homework controls
+	if (scene && dynamic_cast<const RobotScene*>(scene)) {
+		if (input.isPressed('4')) {
+			++elbowBends_;
+			unlock(Achievement::ElbowGrease);
+			if (elbowBends_ >= 18) {
+				unlock(Achievement::NoodleArms);
+			}
+		}
+		if (input.isSpecialKeyPressed(GLUT_KEY_F4)) {
+			callout("CLOAK", "ROBOT VISIBILITY TOGGLED");
+			unlock(Achievement::NowYouSeeMe);
+		}
+	}
+	(void)now;
+}
+
+void ChuckEdition::updateFakeKillfeed() {
+	const float now = time();
+	if (now < nextFakeKill_) {
+		return;
+	}
+
+	// ---------------------------------------------------------------------------
+	//  100% organic, free-range, totally real killfeed events.
+	//  Chuck farms bugs. The bugs occasionally farm Simon. The scoreboard keeps track.
+	// ---------------------------------------------------------------------------
+	struct Kill {
+		const char* killer;
+		const char* weapon;
+		const char* victim;
+		bool chuckScores;
+	};
+	static const Kill kills[] = {
+		{ "Chuck",      "HEADSHOT", "Segfault",           true },
+		{ "Chuck",      "NOSCOPE",  "Memory Leak",        true },
+		{ "Chuck",      "360",      "Off-By-One Error",   true },
+		{ "Chuck",      "AWP",      "Null Pointer",       true },
+		{ "Chuck",      "KNIFE",    "Linker Error",       true },
+		{ "Chuck",      "CLUTCH",   "Race Condition",     true },
+		{ "Chuck",      "WALLBANG", "Undefined Behavior", true },
+		{ "Chuck",      "ACE",      "Merge Conflict",     true },
+		{ "Quaternion", "HAMILTON", "Gimbal Lock",        true },
+		{ "Segfault",   "CRASH",    "Simon",              false },
+		{ "Teapot",     "STEAM",    "Simon",              false },
+		{ "Simon",      "FELL",     "out of the map",     false },
+	};
+	const int count = static_cast<int>(sizeof(kills) / sizeof(kills[0]));
+
+	rng_ = rng_ * 1664525u + 1013904223u;
+	const Kill& k = kills[(rng_ >> 8) % count];
+	killfeed(k.killer, k.weapon, k.victim);
+	if (k.chuckScores) {
+		++chuckScore_;
+	}
+	else {
+		++bugsScore_;
+	}
+
+	rng_ = rng_ * 1664525u + 1013904223u;
+	nextFakeKill_ = now + 8.0f + static_cast<float>((rng_ >> 8) % 600) / 100.0f;
+}
+
+void ChuckEdition::unlock(Achievement achievement) {
+	const std::size_t index = static_cast<std::size_t>(achievement);
+	if (index >= unlocked_.size() || unlocked_[index]) {
+		return;
+	}
+	unlocked_[index] = true;
+
+	const AchievementInfo& info = Notifications::info(achievement);
+	notifications_.achievement(achievement, time());
+	std::cout << "  [ACHIEVEMENT] " << info.title << " (+" << info.xp << " XP)\n";
+	awardXp(info.xp);
+}
+
+void ChuckEdition::callout(const std::string& text, const std::string& subtitle) {
+	notifications_.callout(text, subtitle, time());
+}
+
+void ChuckEdition::killfeed(const std::string& killer, const std::string& weapon, const std::string& victim) {
+	notifications_.killfeed(killer, weapon, victim, time());
+}
+
+void ChuckEdition::awardXp(int amount) {
+	xp_ += amount;
+	const int newLevel = levelForXp(xp_);
+	if (newLevel > level_) {
+		level_ = newLevel;
+		callout("LEVEL UP", "LVL " + std::to_string(level_) + "  //  " + rankForLevel(level_));
+		killfeed("Chuck", "LEVEL UP", "LVL " + std::to_string(level_) + " " + rankForLevel(level_));
+	}
+}
+
+// Level L needs 50 * L * (L - 1) total XP: 0, 100, 300, 600, 1000, 1500, ...
+// (each level costs 100 more than the last, the classic "just one more level" curve)
+int ChuckEdition::xpForLevel(int level) {
+	return 50 * level * (level - 1);
+}
+
+int ChuckEdition::levelForXp(int xp) {
+	int level = 1;
+	while (xpForLevel(level + 1) <= xp) {
+		++level;
+	}
+	return level;
+}
+
+const char* ChuckEdition::rankForLevel(int level) {
+	if (level >= 16) return "GRAND CHAMPION";
+	if (level >= 13) return "CHAMPION";
+	if (level >= 10) return "DIAMOND";
+	if (level >= 7)  return "PLATINUM";
+	if (level >= 5)  return "GOLD";
+	if (level >= 3)  return "SILVER";
+	return "BRONZE";
 }
 
 void ChuckEdition::cycleTheme() {
@@ -116,6 +294,12 @@ void ChuckEdition::cycleTheme() {
 	fromTheme_ = palette_;
 	themeIndex_ = (themeIndex_ + 1) % GamerTheme::themeCount();
 	themeSwitchTime_ = time();
+
+	callout(GamerTheme::theme(themeIndex_).name, "RGB THEME");
+	themesSeen_ |= 1u << themeIndex_;
+	if (themesSeen_ == (1u << GamerTheme::themeCount()) - 1u) {
+		unlock(Achievement::TasteTheRainbow);
+	}
 
 	std::cout << "  [RGB] Theme -> " << GamerTheme::theme(themeIndex_).name << "\n";
 }
@@ -278,6 +462,14 @@ void ChuckEdition::drawOverlay(const Scene& scene) {
 	info.sessionSeconds = time();
 	info.rayTracing = lightingEnabled_;
 	info.showStats = statsVisible_;
+	info.level = level_;
+	info.rank = rankForLevel(level_);
+	info.xp = xp_;
+	info.xpLevelStart = xpForLevel(level_);
+	info.xpLevelEnd = xpForLevel(level_ + 1);
+	info.chuckScore = chuckScore_;
+	info.bugsScore = bugsScore_;
+	info.isGameMap = dynamic_cast<const ChuckWorldScene*>(&scene) != nullptr;
 	Hud::draw(info, p);
 
 	// Chuck World brings its own game HUD (objective, score, nametag, popups...)
@@ -289,6 +481,9 @@ void ChuckEdition::drawOverlay(const Scene& scene) {
 	const std::string tag = "CHUCK SPECIAL EDITION";
 	const float tagW = Render2D::strokeTextWidth(tag, 11.0f, 2.0f);
 	Render2D::strokeTextNeon(w - tagW - 14.0f, h - 14.0f, tag, 11.0f, p.accent, 0.85f, 2.0f);
+
+	// Achievement toasts, callouts and the killfeed sit above the HUD
+	notifications_.draw(p, time(), 136.0f);
 
 	// The TAB loading wipe goes over EVERYTHING
 	drawMapTransition(w, h);

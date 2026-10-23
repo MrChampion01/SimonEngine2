@@ -177,6 +177,9 @@
     <ClCompile Include="ChuckWorldScene.cpp">
       <Filter>Source Files\ChuckEdition</Filter>
     </ClCompile>
+    <ClCompile Include="Notifications.cpp">
+      <Filter>Source Files\ChuckEdition</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.hpp">
@@ -276,6 +279,9 @@
       <Filter>Header Files\ChuckEdition</Filter>
     </ClInclude>
     <ClInclude Include="ChuckWorldScene.hpp">
+      <Filter>Header Files\ChuckEdition</Filter>
+    </ClInclude>
+    <ClInclude Include="Notifications.hpp">
       <Filter>Header Files\ChuckEdition</Filter>
     </ClInclude>
   </ItemGroup>

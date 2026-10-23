@@ -187,6 +187,7 @@
     <ClCompile Include="ChuckBot.cpp" />
     <ClCompile Include="PowerCore.cpp" />
     <ClCompile Include="ChuckWorldScene.cpp" />
+    <ClCompile Include="Notifications.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AxisDisplay.hpp" />
@@ -222,6 +223,7 @@
     <ClInclude Include="ChuckBot.hpp" />
     <ClInclude Include="PowerCore.hpp" />
     <ClInclude Include="ChuckWorldScene.hpp" />
+    <ClInclude Include="Notifications.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

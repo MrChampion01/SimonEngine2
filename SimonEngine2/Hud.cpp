@@ -213,6 +213,87 @@ namespace Hud {
 			statRow(innerX, y, innerW, "SESSION", clock(info.sessionSeconds), white, 0.9f);
 		}
 
+		// ------------------------------------------------------------------ bottom-left
+		void drawProgression(const HudInfo& info, const GamerTheme::Theme& p, float h) {
+			const float slide = (1.0f - easeOut(info.reveal)) * 120.0f;
+			const float y = h - 50.0f + slide;
+			const float cx = margin + 20.0f;
+			const float cy = y + 18.0f;
+
+			// Rank emblem: a glowing diamond with the level number in it
+			Render2D::blendAdditive();
+			Render2D::radialGlow(cx, cy, 30.0f, p.accent, 0.25f, p.accent, 0.0f, 24);
+			Render2D::blendNormal();
+			glColor4f(p.accent.r * 0.35f, p.accent.g * 0.35f, p.accent.b * 0.35f, 0.95f);
+			glBegin(GL_QUADS);
+			glVertex2f(cx, cy - 18.0f);
+			glVertex2f(cx + 18.0f, cy);
+			glVertex2f(cx, cy + 18.0f);
+			glVertex2f(cx - 18.0f, cy);
+			glEnd();
+			glLineWidth(1.5f);
+			glColor4f(p.accent.r, p.accent.g, p.accent.b, 1.0f);
+			glBegin(GL_LINE_LOOP);
+			glVertex2f(cx, cy - 18.0f);
+			glVertex2f(cx + 18.0f, cy);
+			glVertex2f(cx, cy + 18.0f);
+			glVertex2f(cx - 18.0f, cy);
+			glEnd();
+			const std::string lvl = std::to_string(info.level);
+			Render2D::text(cx - Render2D::textWidth(lvl, Font::Body) * 0.5f, cy + 5.0f, lvl, Font::Body, white, 1.0f);
+
+			// LVL + rank name, XP bar, XP numbers
+			const float tx = cx + 28.0f;
+			Render2D::textShadow(tx, y + 10.0f, "LVL " + lvl, Font::Body, white, 1.0f);
+			Render2D::textGlow(tx + Render2D::textWidth("LVL " + lvl, Font::Body) + 8.0f, y + 10.0f, info.rank, Font::Tiny, p.accent, p.accent, 1.0f);
+
+			const float span = static_cast<float>(std::max(1, info.xpLevelEnd - info.xpLevelStart));
+			const float progress = (info.xp - info.xpLevelStart) / span;
+			Render2D::segmentBar(tx, y + 16.0f, 180.0f, 6.0f, progress, 15, p.accent, 1.0f);
+
+			Render2D::text(tx, y + 34.0f, std::to_string(info.xp - info.xpLevelStart) + " / " + std::to_string(info.xpLevelEnd - info.xpLevelStart) + " XP", Font::Tiny, white, 0.6f);
+
+			if (!info.isGameMap) {
+				Render2D::text(tx + 104.0f, y + 34.0f, "[F1] CONTROLS   [TAB] NEXT MAP", Font::Tiny, p.accent2, 0.75f);
+			}
+		}
+
+		// ------------------------------------------------------------------ top-center
+		void drawScoreboard(const HudInfo& info, const GamerTheme::Theme& p, float w) {
+			// CHUCK [score] | LIVE 00:42 | [score] BUGS
+			const float sideW = 62.0f;
+			const float midW = 58.0f;
+			const float total = sideW * 2.0f + midW;
+			const float x = (w - total) * 0.5f;
+			const float slide = (1.0f - easeOut(info.reveal)) * -80.0f;
+			const float y = 16.0f + slide;
+			const float hgt = 28.0f;
+
+			Render2D::chamferBox(x, y, sideW, hgt, 6.0f, GamerTheme::scale(p.accent, 0.35f), 0.85f);
+			Render2D::rect(x + sideW, y, midW, hgt, black, 0.7f);
+			Render2D::chamferBox(x + sideW + midW, y, sideW, hgt, 6.0f, GamerTheme::scale(p.accent2, 0.35f), 0.85f);
+
+			Render2D::text(x + 6.0f, y + 12.0f, "CHUCK", Font::Tiny, p.accent, 1.0f);
+			const std::string cs = std::to_string(info.chuckScore);
+			Render2D::strokeTextNeon(x + sideW - 8.0f - Render2D::strokeTextWidth(cs, 14.0f), y + 24.0f, cs, 14.0f, p.accent, 1.0f);
+
+			const float bx = x + sideW + midW;
+			Render2D::text(bx + sideW - 6.0f - Render2D::textWidth("BUGS", Font::Tiny), y + 12.0f, "BUGS", Font::Tiny, p.accent2, 1.0f);
+			const std::string bs = std::to_string(info.bugsScore);
+			Render2D::strokeTextNeon(bx + 8.0f, y + 24.0f, bs, 14.0f, p.accent2, 1.0f);
+
+			// LIVE dot blinks, match clock counts up
+			const float mx = x + sideW;
+			const Rgb liveRed = { 1.0f, 0.2f, 0.25f };
+			const float blink = std::fmod(info.time, 1.2f) < 0.8f ? 1.0f : 0.25f;
+			Render2D::rect(mx + 10.0f, y + 6.0f, 5.0f, 5.0f, liveRed, blink);
+			Render2D::text(mx + 19.0f, y + 12.0f, "LIVE", Font::Tiny, liveRed, 0.9f);
+			const int secs = static_cast<int>(info.sessionSeconds);
+			std::ostringstream clockText;
+			clockText << std::setfill('0') << std::setw(2) << (secs / 60) % 100 << ":" << std::setw(2) << secs % 60;
+			Render2D::text(mx + (midW - Render2D::textWidth(clockText.str(), Font::MonoSmall)) * 0.5f, y + 25.0f, clockText.str(), Font::MonoSmall, white, 0.95f);
+		}
+
 		// ------------------------------------------------------------------ frame
 		void drawFrame(const HudInfo& info, const GamerTheme::Theme& p, float w, float h) {
 			// Sci-fi corner brackets hugging the viewport, breathing slowly
@@ -231,5 +312,9 @@ namespace Hud {
 		if (info.showStats) {
 			drawStats(info, palette);
 		}
+		if (!info.isGameMap) {
+			drawScoreboard(info, palette, w);
+		}
+		drawProgression(info, palette, h);
 	}
 }

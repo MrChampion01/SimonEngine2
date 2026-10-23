@@ -353,6 +353,11 @@ void ChuckWorldScene::updatePlayer(float dt) {
 		playerPos_.y_ = ground;
 		velocity_.y_ = 0.0f;
 		grounded_ = true;
+
+		// Standing on the 3-unit boss tower = certified parkour legend
+		if (ground >= 2.9f) {
+			ChuckEdition::getInstance().unlock(Achievement::Parkour);
+		}
 	}
 	else {
 		grounded_ = false;
@@ -485,6 +490,16 @@ void ChuckWorldScene::updatePickups() {
 			if (player_) {
 				player_->celebrate();
 			}
+
+			ChuckEdition& chuck = ChuckEdition::getInstance();
+			chuck.unlock(Achievement::PowerUp);
+			chuck.awardXp(10 * combo_);
+			if (combo_ >= 3) {
+				chuck.killfeed("Chuck", "COMBO x" + std::to_string(combo_), "Power Core");
+			}
+			if (combo_ >= 5) {
+				chuck.unlock(Achievement::ComboKing);
+			}
 			continue;
 		}
 		++remaining;
@@ -500,6 +515,14 @@ void ChuckWorldScene::updatePickups() {
 		}
 		// Speed bonus: finish under a minute and every second left over is worth 50
 		score_ += std::max(0, static_cast<int>((60.0f - roundTime_) * 50.0f));
+
+		ChuckEdition& chuck = ChuckEdition::getInstance();
+		chuck.unlock(Achievement::VictoryRoyale);
+		if (roundTime_ < 45.0f) {
+			chuck.unlock(Achievement::Speedrunner);
+		}
+		chuck.killfeed("Chuck", "VICTORY", "Round " + std::to_string(round_));
+		chuck.awardXp(200);
 	}
 }
 
@@ -663,7 +686,7 @@ void ChuckWorldScene::drawHud(const GamerTheme::Theme& p, float time) const {
 	// ---------------------------------------------------------------- controls hint (bottom center)
 	const std::string hint = "WASD MOVE  |  SPACE JUMP  |  Q/E or R-DRAG CAMERA  |  SCROLL ZOOM  |  R RESTART";
 	const float hw = static_cast<float>(Render2D::textWidth(hint, Font::Tiny));
-	Render2D::textShadow((w - hw) * 0.5f, h - 34.0f, hint, Font::Tiny, white, 0.6f);
+	Render2D::textShadow((w - hw) * 0.5f, h - 62.0f, hint, Font::Tiny, white, 0.6f);
 
 	// ---------------------------------------------------------------- VICTORY ROYALE
 	if (victory_) {

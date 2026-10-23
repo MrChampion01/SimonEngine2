@@ -48,6 +48,18 @@ namespace Hud {
 		// ---- toggles (real)
 		bool rayTracing = true;
 		bool showStats = true;
+		bool isGameMap = false;   // Chuck World draws its own top-center panel + hints
+
+		// ---- progression (real, earned with blood sweat and keypresses)
+		int level = 1;
+		std::string rank;
+		int xp = 0;
+		int xpLevelStart = 0;
+		int xpLevelEnd = 100;
+
+		// ---- esports scoreboard (fed by the totally-real killfeed)
+		int chuckScore = 0;
+		int bugsScore = 0;
 	};
 
 	void draw(const HudInfo& info, const GamerTheme::Theme& palette);
