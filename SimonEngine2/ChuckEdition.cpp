@@ -3,6 +3,7 @@
 #include <GL/freeglut.h>
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <iostream>
 #include <sstream>
@@ -80,7 +81,10 @@ void ChuckEdition::printConsoleBanner() const {
 	std::cout << "  [ OK ] Frame pacer overclocked\n";
 	std::cout << "  [ OK ] Gamer posture calibrated\n";
 	std::cout << "  [ OK ] Homework mode preserved: " << homeworkSignature << "\n\n";
-	std::cout << "  F2 = cycle RGB theme   |   F7 = ray tracing   |   ESC = rage quit\n\n";
+	std::cout << "  F1  controls        F2  RGB theme       F3  stats          F5  cinematic\n";
+	std::cout << "  F6  neon outlines   F7  ray tracing     F8  CRT filter     F9  clip it\n";
+	std::cout << "  F10 scenery         F11 fullscreen      F12 photo mode     TAB next map\n";
+	std::cout << "  R-DRAG orbit        SCROLL zoom         ESC rage quit\n\n";
 }
 
 // ============================================================================ per-tick
@@ -98,6 +102,7 @@ void ChuckEdition::update(Scene* scene) {
 	}
 
 	updateCameraControls(scene, dt);
+	updateSecrets();
 
 	updateMapTransition();
 
@@ -134,6 +139,9 @@ void ChuckEdition::update(Scene* scene) {
 		}
 	}
 
+	if (input.isSpecialKeyPressed(GLUT_KEY_F1)) {
+		helpVisible_ = !helpVisible_;
+	}
 	if (input.isSpecialKeyPressed(GLUT_KEY_F5)) {
 		cinematic_ = !cinematic_;
 		callout(cinematic_ ? "CINEMATIC MODE" : "GAMEPLAY MODE", cinematic_ ? "ROLL CAMERA" : "BACK IN CONTROL");
@@ -164,6 +172,96 @@ void ChuckEdition::update(Scene* scene) {
 	}
 	if (now > 300.0f) {
 		unlock(Achievement::TouchGrass);
+	}
+}
+
+// ============================================================================ secrets
+
+namespace {
+	// Konami inputs: arrows are encoded as 1000 + GLUT key code so they can't collide
+	// with the plain ASCII 'b' and 'a' at the end
+	const int konamiSequence[] = {
+		1000 + GLUT_KEY_UP, 1000 + GLUT_KEY_UP, 1000 + GLUT_KEY_DOWN, 1000 + GLUT_KEY_DOWN,
+		1000 + GLUT_KEY_LEFT, 1000 + GLUT_KEY_RIGHT, 1000 + GLUT_KEY_LEFT, 1000 + GLUT_KEY_RIGHT,
+		'b', 'a'
+	};
+	const int konamiLength = static_cast<int>(sizeof(konamiSequence) / sizeof(konamiSequence[0]));
+
+	bool endsWith(const std::string& s, const char* suffix) {
+		const std::string tail(suffix);
+		return s.size() >= tail.size() && s.compare(s.size() - tail.size(), tail.size(), tail) == 0;
+	}
+}
+
+void ChuckEdition::updateSecrets() {
+	InputManager& input = InputManager::getInstance();
+
+	static const int arrows[] = { GLUT_KEY_UP, GLUT_KEY_DOWN, GLUT_KEY_LEFT, GLUT_KEY_RIGHT };
+	for (int key : arrows) {
+		if (input.isSpecialKeyPressed(key)) {
+			advanceKonami(1000 + key);
+		}
+	}
+
+	for (char c : input.getTypedChars()) {
+		const char lower = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+		advanceKonami(lower);
+
+		typedHistory_ += lower;
+		if (typedHistory_.size() > 16) {
+			typedHistory_.erase(0, typedHistory_.size() - 16);
+		}
+		checkTypedWord();
+	}
+}
+
+void ChuckEdition::advanceKonami(int inputCode) {
+	if (inputCode == konamiSequence[konamiProgress_]) {
+		++konamiProgress_;
+		if (konamiProgress_ == konamiLength) {
+			konamiProgress_ = 0;
+			activateChuckMode();
+		}
+	}
+	else {
+		// A wrong input resets, but if it was itself a valid opener, count it
+		konamiProgress_ = (inputCode == konamiSequence[0]) ? 1 : 0;
+	}
+}
+
+void ChuckEdition::activateChuckMode() {
+	fromTheme_ = palette_;
+	themeSwitchTime_ = time();
+	chuckMode_ = true;
+	confettiStart_ = time();
+
+	callout("CHUCK MODE", "ACTIVATED  //  ALL RGB UNLOCKED  //  F2 TO RETURN TO MORTALITY");
+	killfeed("Chuck", "KONAMI", "Everyone");
+	unlock(Achievement::Konami);
+	std::cout << "  [????] CHUCK MODE ACTIVATED. It's over 9000.\n";
+}
+
+void ChuckEdition::checkTypedWord() {
+	// Type these words anywhere in game. Not documented anywhere. Except here. Hi.
+	if (endsWith(typedHistory_, "simon")) {
+		callout("SIMON DETECTED", "SKILL ISSUE INCOMING");
+		killfeed("Chuck", "OWNED", "Simon");
+		++chuckScore_;
+	}
+	else if (endsWith(typedHistory_, "chuck")) {
+		callout("THE GOAT", "HAS ENTERED THE CHAT");
+	}
+	else if (endsWith(typedHistory_, "rtx")) {
+		callout("RTX ON", "(ALLEGEDLY)");
+	}
+	else if (endsWith(typedHistory_, "fps")) {
+		callout(std::to_string(static_cast<int>(fps_ * 4.0f)) + " FPS", "FRAME GEN DOES COUNT. IT DOES. SHUT UP.");
+	}
+	else if (endsWith(typedHistory_, "lag")) {
+		callout("LAG?", "PING IS 1MS. THAT'S A SKILL ISSUE.");
+	}
+	else if (endsWith(typedHistory_, "gg")) {
+		callout("GG", "EZ");
 	}
 }
 
@@ -443,8 +541,9 @@ const char* ChuckEdition::rankForLevel(int level) {
 
 void ChuckEdition::cycleTheme() {
 	// Start the crossfade FROM whatever is on screen right now (even mid-fade),
-	// so mashing F2 never causes a visible jump.
+	// so mashing F2 never causes a visible jump. (F2 also drops you out of CHUCK MODE.)
 	fromTheme_ = palette_;
+	chuckMode_ = false;
 	themeIndex_ = (themeIndex_ + 1) % GamerTheme::themeCount();
 	themeSwitchTime_ = time();
 
@@ -490,10 +589,12 @@ void ChuckEdition::beginFrame() {
 	// ---- ease the cinematic letterbox bars in and out
 	const float frameDt = std::min(frameMs_ / 1000.0f, 0.1f);
 	letterbox_ += ((cinematic_ ? 1.0f : 0.0f) - letterbox_) * std::min(1.0f, frameDt * 4.0f);
+	helpAlpha_ += ((helpVisible_ ? 1.0f : 0.0f) - helpAlpha_) * std::min(1.0f, frameDt * 10.0f);
 
 	// ---- resolve this frame's palette: crossfade between themes, then apply rainbow
 	const float fade = smoothstep01((now - themeSwitchTime_) / themeFadeSeconds);
-	const GamerTheme::Theme blended = GamerTheme::blend(fromTheme_, GamerTheme::theme(themeIndex_), fade);
+	const GamerTheme::Theme& target = chuckMode_ ? GamerTheme::chuckModeTheme() : GamerTheme::theme(themeIndex_);
+	const GamerTheme::Theme blended = GamerTheme::blend(fromTheme_, target, fade);
 	palette_ = GamerTheme::resolve(blended, now);
 
 	// ---- the window title doubles as a live FPS readout (every pro streamer needs one)
@@ -626,7 +727,7 @@ void ChuckEdition::drawOverlay(const Scene& scene) {
 	info.rayTracing = lightingEnabled_;
 	info.showStats = statsVisible_;
 	info.level = level_;
-	info.rank = rankForLevel(level_);
+	info.rank = chuckMode_ ? "CHUCK (MAX RANK)" : rankForLevel(level_);
 	info.xp = xp_;
 	info.xpLevelStart = xpForLevel(level_);
 	info.xpLevelEnd = xpForLevel(level_ + 1);
@@ -657,6 +758,14 @@ void ChuckEdition::drawOverlay(const Scene& scene) {
 
 		// Achievement toasts, callouts and the killfeed sit above the HUD
 		notifications_.draw(p, time(), 136.0f);
+	}
+
+	// Konami confetti rains over everything except the CRT glass
+	Hud::drawConfetti(time() - confettiStart_);
+
+	// F1 controls sheet
+	if (!photoMode_) {
+		Hud::drawControls(p, time(), helpAlpha_);
 	}
 
 	// F8: the whole frame goes through a 1998 CRT, HUD included (that's how CRTs work)

@@ -106,6 +106,12 @@ class ChuckEdition {
 		static bool anyInputPressed();
 		float hudReveal() const;      // 0..1, panels slide in after the splash
 
+		// ---- secrets
+		void updateSecrets();
+		void advanceKonami(int input);
+		void activateChuckMode();
+		void checkTypedWord();
+
 		// ---- progression / notifications
 		void observeHomeworkInput(const Scene* scene);
 		void updateFakeKillfeed();
@@ -131,10 +137,18 @@ class ChuckEdition {
 		bool cinematic_ = false;      // F5 (auto-orbit + letterbox, HUD tucked away)
 		bool crtEnabled_ = false;     // F8
 		bool photoMode_ = false;      // F12 (every overlay hidden, pure scenery)
+		bool helpVisible_ = false;    // F1
+		float helpAlpha_ = 0.0f;      // animated 0..1
 		bool screenshotRequested_ = false; // F9, captured at the end of the next overlay pass
 		float letterbox_ = 0.0f;      // animated 0..1
 		float flashStart_ = -100.0f;  // screenshot flash
 		float lastUpdateTime_ = -1.0f;
+
+		// ---- secrets
+		bool chuckMode_ = false;      // the Konami code reward
+		int konamiProgress_ = 0;
+		float confettiStart_ = -100.0f;
+		std::string typedHistory_;    // last few typed characters, for the word easter eggs
 
 		// ---- splash screen (negative = still showing)
 		float splashEndTime_ = -1.0f;

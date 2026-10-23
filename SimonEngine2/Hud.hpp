@@ -63,6 +63,12 @@ namespace Hud {
 	};
 
 	void draw(const HudInfo& info, const GamerTheme::Theme& palette);
+
+	// F1: the full controls sheet. alpha animates it in/out.
+	void drawControls(const GamerTheme::Theme& palette, float time, float alpha);
+
+	// The Konami reward: a rainbow confetti storm. age = seconds since it was triggered.
+	void drawConfetti(float age);
 }
 
 #endif

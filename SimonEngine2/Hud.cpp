@@ -302,6 +302,148 @@ namespace Hud {
 		}
 	}
 
+	void drawControls(const GamerTheme::Theme& p, float time, float alpha) {
+		if (alpha <= 0.0f) {
+			return;
+		}
+
+		const float w = static_cast<float>(Render2D::width());
+		const float h = static_cast<float>(Render2D::height());
+
+		// Dim the whole game behind the sheet
+		Render2D::rect(0.0f, 0.0f, w, h, black, 0.55f * alpha);
+
+		const float boxW = std::min(w - 40.0f, 600.0f);
+		const float boxH = std::min(h - 40.0f, 440.0f);
+		const float x = (w - boxW) * 0.5f;
+		const float y = (h - boxH) * 0.5f + (1.0f - easeOut(alpha)) * 30.0f;
+
+		Render2D::chamferBox(x, y, boxW, boxH, 18.0f, GamerTheme::scale(p.skyTop, 0.55f), 0.92f * alpha);
+		Render2D::chamferOutline(x, y, boxW, boxH, 18.0f, p.accent, 0.8f * alpha, 1.5f);
+		Render2D::cornerBrackets(x - 6.0f, y - 6.0f, boxW + 12.0f, boxH + 12.0f, 18.0f, p.accent2, 0.6f * alpha, 2.0f);
+
+		const std::string title = "CONTROLS";
+		const float titleW = Render2D::strokeTextWidth(title, 24.0f, 6.0f);
+		Render2D::strokeTextNeon(x + (boxW - titleW) * 0.5f, y + 42.0f, title, 24.0f, p.accent, alpha, 6.0f);
+
+		struct Binding {
+			const char* key;
+			const char* action;
+		};
+
+		// Left column: the original homework controls + the game. Right: Chuck Edition.
+		static const Binding homework[] = {
+			{ "1", "Wireframe" },
+			{ "2", "Solid" },
+			{ "3", "Toggle axis display" },
+			{ "4", "Bend the elbows (robot)" },
+			{ "F4", "Cloak the robot" },
+			{ "L-CLICK", "Grayscale toggle" },
+			{ "ESC", "Rage quit" },
+		};
+		static const Binding world[] = {
+			{ "WASD", "Move (camera relative)" },
+			{ "SPACE", "Jump" },
+			{ "Q / E", "Rotate camera" },
+			{ "R", "Restart round" },
+		};
+		static const Binding chuck[] = {
+			{ "F1", "This panel" },
+			{ "F2", "Cycle RGB theme" },
+			{ "F3", "Stats panels" },
+			{ "F5", "Cinematic mode" },
+			{ "F6", "Neon outlines" },
+			{ "F7", "Ray tracing (allegedly)" },
+			{ "F8", "CRT filter" },
+			{ "F9", "Clip it! (screenshot)" },
+			{ "F10", "Scenery" },
+			{ "F11", "Fullscreen" },
+			{ "F12", "Photo mode" },
+			{ "TAB", "Next map" },
+			{ "R-DRAG", "Orbit camera" },
+			{ "SCROLL", "Zoom" },
+		};
+
+		const float colW = (boxW - 60.0f) * 0.5f;
+		const float rowH = 18.0f;
+
+		const auto section = [&](float sx, float sy, const char* heading, const Binding* rows, int count) {
+			Render2D::text(sx, sy, heading, Font::Tiny, p.accent2, alpha);
+			Render2D::line(sx, sy + 5.0f, sx + colW, sy + 5.0f, p.accent2, 0.4f * alpha, 1.0f);
+			float ry = sy + 22.0f;
+			for (int i = 0; i < count; ++i) {
+				// key "keycap" + action label
+				const float kw = static_cast<float>(Render2D::textWidth(rows[i].key, Font::MonoSmall)) + 10.0f;
+				Render2D::chamferBox(sx, ry - 11.0f, kw, 15.0f, 3.0f, p.accent, 0.18f * alpha);
+				Render2D::chamferOutline(sx, ry - 11.0f, kw, 15.0f, 3.0f, p.accent, 0.6f * alpha);
+				Render2D::text(sx + 5.0f, ry, rows[i].key, Font::MonoSmall, white, alpha);
+				Render2D::text(sx + 78.0f, ry, rows[i].action, Font::Body, white, 0.85f * alpha);
+				ry += rowH;
+			}
+			return ry;
+		};
+
+		const float leftX = x + 24.0f;
+		const float rightX = x + 36.0f + colW;
+		const float top = y + 74.0f;
+
+		float leftY = section(leftX, top, "HOMEWORK (SIMON'S ORIGINAL CONTROLS)", homework, 7);
+		section(leftX, leftY + 10.0f, "CHUCK WORLD (TAB TO GET THERE)", world, 4);
+		section(rightX, top, "CHUCK SPECIAL EDITION", chuck, 14);
+
+		const std::string footer = "PSST... THE KONAMI CODE STILL WORKS IN 2026";
+		const float fw = static_cast<float>(Render2D::textWidth(footer, Font::Tiny));
+		const float blink = 0.45f + 0.35f * std::sin(time * 3.0f);
+		Render2D::text(x + (boxW - fw) * 0.5f, y + boxH - 16.0f, footer, Font::Tiny, p.accent2, blink * alpha);
+	}
+
+	void drawConfetti(float age) {
+		if (age < 0.0f || age > 5.0f) {
+			return;
+		}
+
+		const float w = static_cast<float>(Render2D::width());
+		const float h = static_cast<float>(Render2D::height());
+		const float fade = std::min(1.0f, (5.0f - age) / 1.0f);
+
+		// 160 pieces, every one a pure function of (index, age): launched from above the
+		// screen with a random sideways drift, falling with gravity and fluttering as it spins
+		for (int i = 0; i < 160; ++i) {
+			const float r1 = std::fmod(std::sin(i * 12.9898f) * 43758.5453f, 1.0f);
+			const float r2 = std::fmod(std::sin(i * 78.233f) * 12345.678f, 1.0f);
+			const float a = std::fabs(r1);
+			const float b = std::fabs(r2);
+
+			const float x0 = a * w;
+			const float y0 = -b * h * 0.4f - 10.0f;
+			const float vx = (b - 0.5f) * 140.0f;
+			const float vy = 40.0f + a * 120.0f;
+
+			const float px = x0 + vx * age + std::sin(age * (3.0f + a * 4.0f) + i) * 22.0f;
+			const float py = y0 + vy * age + 0.5f * 160.0f * age * age;
+			if (py > h + 20.0f) {
+				continue;
+			}
+
+			const float spin = age * (4.0f + b * 8.0f) + i;
+			const float half = 3.0f + a * 3.0f;
+			const float flip = std::fabs(std::cos(spin)); // paper turning edge-on
+			const Rgb c = GamerTheme::hsv(a + age * 0.2f, 0.85f, 1.0f);
+
+			glColor4f(c.r, c.g, c.b, 0.95f * fade);
+			glBegin(GL_QUADS);
+			const float cs = std::cos(spin * 0.7f);
+			const float sn = std::sin(spin * 0.7f);
+			const float hx = half;
+			const float hy = half * 0.55f * (0.2f + 0.8f * flip);
+			glVertex2f(px + (-hx * cs - -hy * sn), py + (-hx * sn + -hy * cs));
+			glVertex2f(px + (hx * cs - -hy * sn), py + (hx * sn + -hy * cs));
+			glVertex2f(px + (hx * cs - hy * sn), py + (hx * sn + hy * cs));
+			glVertex2f(px + (-hx * cs - hy * sn), py + (-hx * sn + hy * cs));
+			glEnd();
+		}
+	}
+
 	void draw(const HudInfo& info, const GamerTheme::Theme& palette) {
 		const float w = static_cast<float>(Render2D::width());
 		const float h = static_cast<float>(Render2D::height());
