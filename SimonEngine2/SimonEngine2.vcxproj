@@ -177,6 +177,9 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="Line.cpp" />
+    <ClCompile Include="ChuckEdition.cpp" />
+    <ClCompile Include="GamerTheme.cpp" />
+    <ClCompile Include="Render2D.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AxisDisplay.hpp" />
@@ -202,6 +205,9 @@
     <ClInclude Include="Sphere.hpp" />
     <ClInclude Include="WindowConstants.hpp" />
     <ClInclude Include="Line.hpp" />
+    <ClInclude Include="ChuckEdition.hpp" />
+    <ClInclude Include="GamerTheme.hpp" />
+    <ClInclude Include="Render2D.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

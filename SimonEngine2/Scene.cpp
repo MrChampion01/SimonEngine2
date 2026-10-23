@@ -1,4 +1,5 @@
 #include "Scene.hpp"
+#include "ChuckEdition.hpp"
 
 void Scene::addRootObject(std::unique_ptr<Object> object) {
 	if (!object) {
@@ -37,11 +38,16 @@ void Scene::sceneDeInit() {
 void Scene::sceneDraw() const {
 	camera_.apply();
 
+	// Studio lights + anything else that has to live in world space with the camera applied
+	ChuckEdition::getInstance().beginWorld(*this);
+
 	draw();
 
 	for (auto& rootObject : rootObjects_) {
 		rootObject->rootDraw();
 	}
+
+	ChuckEdition::getInstance().endWorld(*this);
 }
 
 void Scene::sceneUpdate() {

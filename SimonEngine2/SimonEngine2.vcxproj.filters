@@ -73,6 +73,12 @@
     <Filter Include="Source Files\glad">
       <UniqueIdentifier>{0ce84d9d-5caf-4085-8985-9b5db1e1e500}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\ChuckEdition">
+      <UniqueIdentifier>{c740f341-e95b-4b2f-a98b-3ff46b3a3049}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ChuckEdition">
+      <UniqueIdentifier>{14081dfe-b43c-4f41-8eae-36fdc7ca52d8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -140,6 +146,15 @@
     </ClCompile>
     <ClCompile Include="Limb.cpp">
       <Filter>Source Files\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="ChuckEdition.cpp">
+      <Filter>Source Files\ChuckEdition</Filter>
+    </ClCompile>
+    <ClCompile Include="GamerTheme.cpp">
+      <Filter>Source Files\ChuckEdition</Filter>
+    </ClCompile>
+    <ClCompile Include="Render2D.cpp">
+      <Filter>Source Files\ChuckEdition</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -211,6 +226,15 @@
     </ClInclude>
     <ClInclude Include="Limb.hpp">
       <Filter>Header Files\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="ChuckEdition.hpp">
+      <Filter>Header Files\ChuckEdition</Filter>
+    </ClInclude>
+    <ClInclude Include="GamerTheme.hpp">
+      <Filter>Header Files\ChuckEdition</Filter>
+    </ClInclude>
+    <ClInclude Include="Render2D.hpp">
+      <Filter>Header Files\ChuckEdition</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
